@@ -81,7 +81,6 @@ function onSelectElement(elementId) {
             <!-- Основной контейнер карточки -->
             <div class="canvas-card" :class="{ flipped: props.flipped }">
                 <div class="card-side front">
-                    <p>Передняя сторона визитки</p>
                     <!-- Перетаскиваемые элементы для передней стороны -->
                     <DraggableItem
                         v-for="element in props.flipped ? [] : (props.elements || [])"
@@ -97,7 +96,6 @@ function onSelectElement(elementId) {
                     />
                 </div>
                 <div class="card-side back">
-                    <p>Обратная сторона визитки</p>
                     <!-- Перетаскиваемые элементы для обратной стороны -->
                     <DraggableItem
                         v-for="element in props.flipped ? (props.elements || []) : []"

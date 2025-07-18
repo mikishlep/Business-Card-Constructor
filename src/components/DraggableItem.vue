@@ -54,8 +54,6 @@ function onMouseDown(e) {
 
 // Начало изменения размера
 function startResize(e) {
-  if (props.type === 'text') return; // Текстовые элементы не изменяют размер
-  
   isResizing.value = true;
   
   const rect = elementRef.value.getBoundingClientRect();
@@ -99,8 +97,12 @@ function onMouseMove(e) {
     const deltaX = e.clientX - resizeStart.value.x;
     const deltaY = e.clientY - resizeStart.value.y;
     
-    const newWidth = Math.max(50, resizeStart.value.width + deltaX);
-    const newHeight = Math.max(30, resizeStart.value.height + deltaY);
+    // Минимальный размер зависит от типа элемента
+    const minWidth = props.type === 'text' ? 80 : 50;
+    const minHeight = props.type === 'text' ? 40 : 30;
+    
+    const newWidth = Math.max(minWidth, resizeStart.value.width + deltaX);
+    const newHeight = Math.max(minHeight, resizeStart.value.height + deltaY);
     
     // Ограничиваем размер границами карточки
     const cardContainer = elementRef.value.closest('.card-side');
@@ -227,9 +229,9 @@ onUnmounted(() => {
       </template>
     </div>
     
-    <!-- Элемент изменения размера (только для не-текстовых элементов) -->
+    <!-- Элемент изменения размера (для всех типов элементов) -->
     <div 
-      v-if="type !== 'text' && isSelected"
+      v-if="isSelected"
       class="resize-handle"
       @mousedown="startResize"
     ></div>
@@ -299,6 +301,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .text-element p.editing {
