@@ -6,6 +6,7 @@ import { ref } from 'vue';
 // Координаты
 const offset = ref({ x: 0, y: 0 });
 const start = ref({ x: 0, y: 0 });
+
 // Данный параметр у нас будет отвечать за активность перемещения колесом мыши
 const isPanning = ref(false);
 
@@ -27,6 +28,7 @@ function onMouseMove(e) {
     // Просчет перемещений
     const dx = e.clientX - start.value.x;
     const dy = e.clientY - start.value.y;
+
     offset.value.x += dx;
     offset.value.y += dy;
 
@@ -36,10 +38,15 @@ function onMouseMove(e) {
 
 // Происходит отпускание кнопки
 function onMouseUp() {
-    isPanning.value = false;
-    document.body.style.cursor = 'default';
+    if (isPanning.value) {
+        isPanning.value = false;
+        document.body.style.cursor = 'default';
+    }
 }
 
+function flipCard() {
+    is
+}
 </script>
 
 <template>
