@@ -1,12 +1,13 @@
 <script setup>
-defineProps(['elements']);
-
 import { ref } from 'vue';
+const props = defineProps({
+    elements: Array,
+    flipped: Boolean
+});
 
 // Координаты
 const offset = ref({ x: 0, y: 0 });
 const start = ref({ x: 0, y: 0 });
-
 // Данный параметр у нас будет отвечать за активность перемещения колесом мыши
 const isPanning = ref(false);
 
@@ -34,6 +35,8 @@ function onMouseMove(e) {
 
     // Обновляем стартовые позиции
     start.value = { x: e.clientX, y: e.clientY };
+
+    document.body.style.cursor = 'grab';
 }
 
 // Происходит отпускание кнопки
@@ -43,48 +46,86 @@ function onMouseUp() {
         document.body.style.cursor = 'default';
     }
 }
-
-function flipCard() {
-    is
-}
 </script>
 
 <template>
-    <div 
-        class="canvas-wrapper"
+    <div class="pan-wrapper"
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
         @mousemove="onMouseMove"
-        @mouseleave="onMouseUp"
-        :style="{
+        @mouseleave="onMouseUp">
+        
+        <!-- Добавляем новый контейнер для трансформаций -->
+        <div class="transform-container" :style="{
             transform: `translate(${offset.x}px, ${offset.y}px)`,
-            transition: isPanning ? 'none' : 'transform 0.1s ease',
-        }"
-    >
-        <div class="canvas-card">
-
+            transition: isPanning ? 'none' : 'transform 0.6s ease'
+        }">
+            <!-- Основной контейнер карточки -->
+            <div class="canvas-card" :class="{ flipped: props.flipped }">
+                <div class="card-side front">
+                    <p>Передняя сторона визитки</p>
+                </div>
+                <div class="card-side back">
+                    <p>Обратная сторона визитки</p>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.canvas-wrapper {
+.pan-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.transform-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 100%;
+    width: 100%;
 }
 
+/* Остальные стили с исправлениями */
 .canvas-card {
     width: 525px;
     height: 300px;
-    background-color: white;
+    position: relative;
+    transform-style: preserve-3d; /* Важно для 3D-трансформаций */
+    transition: transform 0.6s ease;
+    cursor: default;
+}
+
+.canvas-card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-side {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Скрываем обратную сторону */
+    display: flex;
+    justify-content: center;
+    align-items: center;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    border: 1px solid #ccc;
-    position: relative;
-    overflow: hidden;
     padding: 16px;
     box-sizing: border-box;
+}
+
+.front {
+    background-color: #fff;
+    z-index: 2;
+}
+
+.back {
+    background-color: #f0f0f0;
+    transform: rotateY(180deg); /* Изначально перевернута */
 }
 </style>
