@@ -13,12 +13,16 @@ const emit = defineEmits(['update:position']);
 
 const elementRef = ref(null);
 const isDragging = ref(false);
+const isEditing = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
 
 // Начало перетаскивания
 function onMouseDown(e) {
   if (e.button !== 0) return; // Только левая кнопка мыши
+  
+  // Если это текстовый элемент и мы в режиме редактирования, не начинаем перетаскивание
+  if (props.type === 'text' && isEditing.value) return;
   
   isDragging.value = true;
   
@@ -66,6 +70,42 @@ function onMouseUp() {
   }
 }
 
+// Двойной клик для редактирования текста
+function onDoubleClick(e) {
+  if (props.type === 'text') {
+    e.preventDefault();
+    e.stopPropagation();
+    isEditing.value = true;
+    
+    // Фокусируемся на текстовом элементе
+    const textElement = elementRef.value.querySelector('.text-element p');
+    if (textElement) {
+      textElement.focus();
+      // Выделяем весь текст
+      const range = document.createRange();
+      range.selectNodeContents(textElement);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  }
+}
+
+// Обработка потери фокуса для текстового элемента
+function onBlur() {
+  if (props.type === 'text') {
+    isEditing.value = false;
+  }
+}
+
+// Обработка нажатия Escape для выхода из режима редактирования
+function onKeyDown(e) {
+  if (e.key === 'Escape' && isEditing.value) {
+    isEditing.value = false;
+    e.target.blur();
+  }
+}
+
 // Обработчики событий
 onMounted(() => {
   document.addEventListener('mousemove', onMouseMove);
@@ -88,13 +128,24 @@ onUnmounted(() => {
       transition: isDragging ? 'none' : 'transform 0.1s ease'
     }"
     class="draggable-element"
-    :class="{ 'is-dragging': isDragging }"
+    :class="{ 
+      'is-dragging': isDragging,
+      'is-editing': isEditing 
+    }"
     @mousedown="onMouseDown"
+    @dblclick="onDoubleClick"
   >
     <div class="element-content">
       <template v-if="type === 'text'">
         <div class="text-element">
-          <p contenteditable="true" @click.stop>Текст</p>
+          <p 
+            contenteditable="true" 
+            @blur="onBlur"
+            @keydown="onKeyDown"
+            :class="{ 'editing': isEditing }"
+          >
+            Текст
+          </p>
         </div>
       </template>
       <template v-else-if="type === 'image'">
@@ -124,6 +175,10 @@ onUnmounted(() => {
   opacity: 0.9;
 }
 
+.draggable-element.is-editing {
+  z-index: 50;
+}
+
 .element-content {
   min-width: 50px;
   min-height: 30px;
@@ -147,6 +202,20 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   cursor: text;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.text-element p.editing {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 1px solid #007bff;
+  cursor: text;
+}
+
+.text-element p:focus {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 1px solid #007bff;
 }
 
 .image-element img {
