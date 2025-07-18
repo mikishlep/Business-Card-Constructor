@@ -81,6 +81,7 @@ function onSelectElement(elementId) {
             <!-- Основной контейнер карточки -->
             <div class="canvas-card" :class="{ flipped: props.flipped }">
                 <div class="card-side front">
+                    <p>Передняя сторона визитки</p>
                     <!-- Перетаскиваемые элементы для передней стороны -->
                     <DraggableItem
                         v-for="element in props.flipped ? [] : (props.elements || [])"
@@ -91,11 +92,21 @@ function onSelectElement(elementId) {
                         :initial-y="element.y"
                         :side="'front'"
                         :is-selected="element.isSelected"
+                        :width="element.width"
+                        :height="element.height"
+                        :background-color="element.backgroundColor"
+                        :border-color="element.borderColor"
+                        :border-width="element.borderWidth"
+                        :border-radius="element.borderRadius"
+                        :opacity="element.opacity"
+                        :has-shadow="element.hasShadow"
+                        :text="element.text"
                         @update:position="(data) => emit('update-position', data)"
                         @select="onSelectElement"
                     />
                 </div>
                 <div class="card-side back">
+                    <p>Обратная сторона визитки</p>
                     <!-- Перетаскиваемые элементы для обратной стороны -->
                     <DraggableItem
                         v-for="element in props.flipped ? (props.elements || []) : []"
@@ -106,6 +117,15 @@ function onSelectElement(elementId) {
                         :initial-y="element.y"
                         :side="'back'"
                         :is-selected="element.isSelected"
+                        :width="element.width"
+                        :height="element.height"
+                        :background-color="element.backgroundColor"
+                        :border-color="element.borderColor"
+                        :border-width="element.borderWidth"
+                        :border-radius="element.borderRadius"
+                        :opacity="element.opacity"
+                        :has-shadow="element.hasShadow"
+                        :text="element.text"
                         @update:position="(data) => emit('update-position', data)"
                         @select="onSelectElement"
                     />

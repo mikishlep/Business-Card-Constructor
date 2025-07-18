@@ -13,6 +13,12 @@ const activeElements = computed(() => {
     return props.flipped ? backElements.value : frontElements.value;
 });
 
+// Получение выбранного элемента
+function getSelectedElement() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    return elements.find(el => el.isSelected) || null;
+}
+
 // Добавление нового элемента
 function addElement(type = 'default') {
     const newElement = {
@@ -20,8 +26,26 @@ function addElement(type = 'default') {
         type: type,
         x: 50,
         y: 50,
+        width: 100,
+        height: type === 'text' ? 80 : 60,
         side: props.flipped ? 'back' : 'front',
-        isSelected: true // Новый элемент автоматически выбирается
+        isSelected: true,
+        backgroundColor: '#ffffff',
+        borderColor: '#007bff',
+        borderWidth: 2,
+        borderRadius: 6,
+        opacity: 1,
+        hasShadow: false,
+        text: type === 'text' ? {
+            content: 'Текст',
+            color: '#000000',
+            fontSize: 14,
+            fontFamily: 'Arial',
+            textAlign: 'center',
+            bold: false,
+            italic: false,
+            underline: false
+        } : null
     };
     
     // Снимаем выбор со всех других элементов
@@ -42,6 +66,21 @@ function updateElementPosition({ id, position }) {
     if (element) {
         element.x = position.x;
         element.y = position.y;
+    }
+}
+
+// Обновление свойств элемента
+function updateElement({ id, property, value }) {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const element = elements.find(el => el.id === id);
+    if (element) {
+        if (property.includes('.')) {
+            const [parent, child] = property.split('.');
+            if (!element[parent]) element[parent] = {};
+            element[parent][child] = value;
+        } else {
+            element[property] = value;
+        }
     }
 }
 
@@ -78,9 +117,11 @@ function deleteSelected() {
 defineExpose({
     addElement,
     updateElementPosition,
+    updateElement,
     selectElement,
     deselectAll,
-    deleteSelected
+    deleteSelected,
+    getSelectedElement
 });
 </script>
 

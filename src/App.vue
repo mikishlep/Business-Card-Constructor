@@ -1,7 +1,8 @@
 <script setup>
 import ToolPanel from './components/ToolPanel.vue';
 import Editor from './components/Editor.vue';
-import { ref } from 'vue';
+import PropertiesPanel from './components/PropertiesPanel.vue';
+import { ref, computed } from 'vue';
 
 const isFlipped = ref(false);
 const editorRef = ref(null);
@@ -24,6 +25,21 @@ function handleDeleteSelected() {
     editorRef.value.deleteSelected();
   }
 }
+
+// Обновление свойств элемента
+function handleUpdateElement(updateData) {
+  if (editorRef.value) {
+    editorRef.value.updateElement(updateData);
+  }
+}
+
+// Получение выбранного элемента
+const selectedElement = computed(() => {
+  if (editorRef.value) {
+    return editorRef.value.getSelectedElement();
+  }
+  return null;
+});
 </script>
 
 <template>
@@ -33,6 +49,10 @@ function handleDeleteSelected() {
     @delete-selected="handleDeleteSelected"
   />
   <Editor ref="editorRef" :flipped="isFlipped" />
+  <PropertiesPanel 
+    :selected-element="selectedElement"
+    @update-element="handleUpdateElement"
+  />
 </template>
 
 <style scoped>

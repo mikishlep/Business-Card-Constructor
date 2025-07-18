@@ -44,9 +44,6 @@ function handleDeleteSelected() {
         <img src="../assets/icons/revert.svg" alt="Повернуть визитку">
     </button>
   </div>
-  <div class="text-edit-panel">
-    
-  </div>
 </template>
 
 <style scoped>
@@ -103,24 +100,5 @@ function handleDeleteSelected() {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     z-index: 10;
     transition: all 0.3s ease;
-}
-
-.text-edit-panel {
-    position: fixed;
-    right: 20px;
-    top: 20px;
-    bottom: 20px;
-
-    padding: 16px;
-    border-radius: 14px;
-    background: #2c2c2c;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-    z-index: 10;
-    transition: all 0.3s ease;
-    width: 300px;
-    height: auto;
 }
 </style>

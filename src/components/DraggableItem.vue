@@ -1,16 +1,26 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps({
   id: String,
   type: String,
   initialX: Number,
   initialY: Number,
-  side: String, // 'front' или 'back'
-  isSelected: Boolean // Новый проп для выбора
+  side: String,
+  isSelected: Boolean,
+  // Новые свойства
+  width: Number,
+  height: Number,
+  backgroundColor: String,
+  borderColor: String,
+  borderWidth: Number,
+  borderRadius: Number,
+  opacity: Number,
+  hasShadow: Boolean,
+  text: Object
 });
 
-const emit = defineEmits(['update:position', 'select', 'deselect']);
+const emit = defineEmits(['update:position', 'select']);
 
 const elementRef = ref(null);
 const isDragging = ref(false);
@@ -19,29 +29,53 @@ const isResizing = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
-const size = ref({ width: 100, height: 80 }); // Начальный размер
+const size = ref({ 
+  width: props.width || 100, 
+  height: props.height || 80 
+});
+
+// Следим за изменениями пропсов и обновляем локальные значения
+watch(() => props.width, (newWidth) => {
+  if (newWidth !== undefined) {
+    size.value.width = newWidth;
+  }
+});
+
+watch(() => props.height, (newHeight) => {
+  if (newHeight !== undefined) {
+    size.value.height = newHeight;
+  }
+});
+
+watch(() => props.initialX, (newX) => {
+  if (newX !== undefined) {
+    position.value.x = newX;
+  }
+});
+
+watch(() => props.initialY, (newY) => {
+  if (newY !== undefined) {
+    position.value.y = newY;
+  }
+});
 
 // Начало перетаскивания
 function onMouseDown(e) {
-  if (e.button !== 0) return; // Только левая кнопка мыши
+  if (e.button !== 0) return;
   
-  // Если это текстовый элемент и мы в режиме редактирования, не начинаем перетаскивание
   if (props.type === 'text' && isEditing.value) return;
   
-  // Проверяем, не кликнули ли мы по элементу изменения размера
   if (e.target.classList.contains('resize-handle')) {
     startResize(e);
     return;
   }
   
-  // Выбираем элемент при клике
   if (!props.isSelected) {
     emit('select', props.id);
   }
   
   isDragging.value = true;
   
-  // Вычисляем смещение курсора относительно элемента
   const rect = elementRef.value.getBoundingClientRect();
   dragOffset.value = {
     x: e.clientX - rect.left,
@@ -72,17 +106,13 @@ function startResize(e) {
 // Перетаскивание
 function onMouseMove(e) {
   if (isDragging.value) {
-    // Находим родительский контейнер карточки
     const cardContainer = elementRef.value.closest('.card-side');
     if (!cardContainer) return;
     
     const cardRect = cardContainer.getBoundingClientRect();
-    
-    // Вычисляем новую позицию относительно карточки
     const newX = e.clientX - cardRect.left - dragOffset.value.x;
     const newY = e.clientY - cardRect.top - dragOffset.value.y;
     
-    // Ограничиваем позицию границами карточки
     const maxX = cardRect.width - size.value.width;
     const maxY = cardRect.height - size.value.height;
     
@@ -93,18 +123,15 @@ function onMouseMove(e) {
   }
   
   if (isResizing.value) {
-    // Вычисляем новый размер
     const deltaX = e.clientX - resizeStart.value.x;
     const deltaY = e.clientY - resizeStart.value.y;
     
-    // Минимальный размер зависит от типа элемента
     const minWidth = props.type === 'text' ? 80 : 50;
     const minHeight = props.type === 'text' ? 40 : 30;
     
     const newWidth = Math.max(minWidth, resizeStart.value.width + deltaX);
     const newHeight = Math.max(minHeight, resizeStart.value.height + deltaY);
     
-    // Ограничиваем размер границами карточки
     const cardContainer = elementRef.value.closest('.card-side');
     if (cardContainer) {
       const cardRect = cardContainer.getBoundingClientRect();
@@ -142,11 +169,9 @@ function onDoubleClick(e) {
     e.stopPropagation();
     isEditing.value = true;
     
-    // Фокусируемся на текстовом элементе
     const textElement = elementRef.value.querySelector('.text-element p');
     if (textElement) {
       textElement.focus();
-      // Выделяем весь текст
       const range = document.createRange();
       range.selectNodeContents(textElement);
       const selection = window.getSelection();
@@ -171,7 +196,52 @@ function onKeyDown(e) {
   }
 }
 
-// Обработчики событий
+// Вычисляем стили элемента
+const elementStyles = computed(() => {
+  const styles = {
+    left: position.value.x + 'px',
+    top: position.value.y + 'px',
+    width: size.value.width + 'px',
+    height: size.value.height + 'px',
+    transform: isDragging.value || isResizing.value ? 'scale(1.02)' : 'scale(1)',
+    transition: (isDragging.value || isResizing.value) ? 'none' : 'transform 0.1s ease',
+    opacity: props.opacity || 1
+  };
+  
+  if (props.hasShadow) {
+    styles.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  }
+  
+  return styles;
+});
+
+// Вычисляем стили контента
+const contentStyles = computed(() => {
+  return {
+    backgroundColor: props.backgroundColor || '#ffffff',
+    borderColor: props.isSelected ? (props.borderColor || '#007bff') : 'transparent',
+    borderWidth: (props.borderWidth || 2) + 'px',
+    borderRadius: (props.borderRadius || 6) + 'px'
+  };
+});
+
+// Вычисляем стили текста
+const textStyles = computed(() => {
+  if (props.type !== 'text' || !props.text) {
+    return {};
+  }
+  
+  return {
+    color: props.text.color || '#000000',
+    fontSize: (props.text.fontSize || 14) + 'px',
+    fontFamily: props.text.fontFamily || 'Arial',
+    textAlign: props.text.textAlign || 'center',
+    fontWeight: props.text.bold ? 'bold' : 'normal',
+    fontStyle: props.text.italic ? 'italic' : 'normal',
+    textDecoration: props.text.underline ? 'underline' : 'none'
+  };
+});
+
 onMounted(() => {
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
@@ -186,14 +256,7 @@ onUnmounted(() => {
 <template>
   <div
     ref="elementRef"
-    :style="{
-      left: position.x + 'px',
-      top: position.y + 'px',
-      width: size.width + 'px',
-      height: size.height + 'px',
-      transform: isDragging || isResizing ? 'scale(1.02)' : 'scale(1)',
-      transition: (isDragging || isResizing) ? 'none' : 'transform 0.1s ease'
-    }"
+    :style="elementStyles"
     class="draggable-element"
     :class="{ 
       'is-dragging': isDragging,
@@ -204,7 +267,7 @@ onUnmounted(() => {
     @mousedown="onMouseDown"
     @dblclick="onDoubleClick"
   >
-    <div class="element-content">
+    <div class="element-content" :style="contentStyles">
       <template v-if="type === 'text'">
         <div class="text-element">
           <p 
@@ -212,8 +275,9 @@ onUnmounted(() => {
             @blur="onBlur"
             @keydown="onKeyDown"
             :class="{ 'editing': isEditing }"
+            :style="textStyles"
           >
-            Текст
+            {{ text?.content || 'Текст' }}
           </p>
         </div>
       </template>
@@ -229,7 +293,7 @@ onUnmounted(() => {
       </template>
     </div>
     
-    <!-- Элемент изменения размера (для всех типов элементов) -->
+    <!-- Элемент изменения размера -->
     <div 
       v-if="isSelected"
       class="resize-handle"
@@ -264,11 +328,9 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   padding: 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid transparent; /* Прозрачная граница по умолчанию */
+  border: 2px solid transparent;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  pointer-events: none; /* Предотвращаем конфликты с перетаскиванием */
+  pointer-events: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -276,13 +338,8 @@ onUnmounted(() => {
   transition: border-color 0.2s ease;
 }
 
-/* Синяя обводка только для выбранных элементов */
-.draggable-element.is-selected .element-content {
-  border-color: #007bff;
-}
-
 .text-element {
-  pointer-events: auto; /* Разрешаем редактирование текста */
+  pointer-events: auto;
   width: 100%;
   height: 100%;
 }
@@ -344,7 +401,6 @@ onUnmounted(() => {
   color: #666;
 }
 
-/* Элемент изменения размера */
 .resize-handle {
   position: absolute;
   bottom: -6px;
