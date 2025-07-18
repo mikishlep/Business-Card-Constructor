@@ -2,10 +2,14 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  selectedElement: Object
+  selectedElement: Object,
+  isVisible: {
+    type: Boolean,
+    default: true
+  }
 });
 
-const emit = defineEmits(['update-element']);
+const emit = defineEmits(['update-element', 'toggle-visibility']);
 
 // Вычисляем, есть ли выбранный элемент
 const hasSelection = computed(() => {
@@ -33,10 +37,28 @@ function updateTextProperty(property, value) {
     });
   }
 }
+
+// Переключение видимости панели
+function togglePanel() {
+  emit('toggle-visibility');
+}
 </script>
 
 <template>
-  <div class="properties-panel" v-if="hasSelection">
+  <!-- Кнопка сворачивания (всегда видна когда панель открыта) -->
+  <button 
+    v-if="isVisible" 
+    class="collapse-button" 
+    @click="togglePanel" 
+    title="Свернуть панель"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="9,18 15,12 9,6"></polyline>
+    </svg>
+  </button>
+
+  <!-- Панель свойств -->
+  <div class="properties-panel" v-if="isVisible" :class="{ 'has-selection': hasSelection }">
     <div class="panel-header">
       <h3>Свойства элемента</h3>
       <span class="element-type">{{ selectedElement?.type === 'text' ? 'Текст' : 'Элемент' }}</span>
@@ -236,12 +258,17 @@ function updateTextProperty(property, value) {
     </div>
   </div>
   
-  <!-- Сообщение, когда ничего не выбрано -->
-  <div class="properties-panel empty" v-else>
-    <div class="empty-message">
-      <p>Выберите элемент для редактирования свойств</p>
-    </div>
-  </div>
+  <!-- Кнопка разворачивания, когда панель скрыта -->
+  <button 
+    v-else 
+    class="expand-button" 
+    @click="togglePanel" 
+    title="Развернуть панель свойств"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15,18 9,12 15,6"></polyline>
+    </svg>
+  </button>
 </template>
 
 <style scoped>
@@ -262,6 +289,66 @@ function updateTextProperty(property, value) {
   transition: all 0.3s ease;
   overflow-y: auto;
   color: white;
+}
+
+.collapse-button {
+  position: fixed;
+  right: 360px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #2c2c2c;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.collapse-button:hover {
+  background: #3c3c3c;
+  color: #aaa;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.expand-button {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #2c2c2c;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.expand-button:hover {
+  background: #3c3c3c;
+  color: #aaa;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .panel-header {
@@ -398,22 +485,6 @@ function updateTextProperty(property, value) {
   width: 16px;
   height: 16px;
   accent-color: #007bff;
-}
-
-.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-message {
-  text-align: center;
-  color: #666;
-}
-
-.empty-message p {
-  margin: 0;
-  font-size: 14px;
 }
 
 /* Скроллбар */

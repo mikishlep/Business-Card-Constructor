@@ -5,6 +5,7 @@ import PropertiesPanel from './components/PropertiesPanel.vue';
 import { ref, computed } from 'vue';
 
 const isFlipped = ref(false);
+const isPropertiesPanelVisible = ref(true);
 const editorRef = ref(null);
 
 // Разворот визитки
@@ -33,6 +34,11 @@ function handleUpdateElement(updateData) {
   }
 }
 
+// Переключение видимости панели свойств
+function togglePropertiesPanel() {
+  isPropertiesPanelVisible.value = !isPropertiesPanelVisible.value;
+}
+
 // Получение выбранного элемента
 const selectedElement = computed(() => {
   if (editorRef.value) {
@@ -51,7 +57,9 @@ const selectedElement = computed(() => {
   <Editor ref="editorRef" :flipped="isFlipped" />
   <PropertiesPanel 
     :selected-element="selectedElement"
+    :is-visible="isPropertiesPanelVisible"
     @update-element="handleUpdateElement"
+    @toggle-visibility="togglePropertiesPanel"
   />
 </template>
 
