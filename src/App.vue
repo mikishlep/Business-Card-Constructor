@@ -1,17 +1,13 @@
 <script setup>
-
+import ToolPanel from './components/ToolPanel.vue';
+import Editor from './components/Editor.vue';
+import Canvas from './components/Canvas.vue';
 </script>
 
 <template>
-  <header>
-
-  </header>
-  <main>
-
-  </main>
-  <footer>
-
-  </footer>
+  <ToolPanel />
+  <Canvas />
+  <Editor />
 </template>
 
 <style scoped>

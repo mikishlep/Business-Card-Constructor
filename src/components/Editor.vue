@@ -1,17 +1,11 @@
 <script setup>
-
+import Canvas from './Canvas.vue';
 </script>
 
 <template>
-  <header>
+    <div class="editor">
 
-  </header>
-  <main>
-
-  </main>
-  <footer>
-
-  </footer>
+    </div>
 </template>
 
 <style scoped>
