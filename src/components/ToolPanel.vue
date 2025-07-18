@@ -1,9 +1,14 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
     emit('add-element', 'default');
+}
+
+// Обработка клика по кнопке удаления
+function handleDeleteSelected() {
+    emit('delete-selected');
 }
 </script>
 
@@ -19,7 +24,7 @@ function handleAddElement() {
         <button id="save-tool" class="toolPanel-buttons">
             <img src="../assets/icons/save.svg" alt="Сохранить визитку">
         </button>
-        <button id="delete-tool" class="toolPanel-buttons">
+        <button id="delete-tool" class="toolPanel-buttons" @click="handleDeleteSelected">
             <img src="../assets/icons/trash.svg" alt="Удалить компонент">
         </button>
         <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">

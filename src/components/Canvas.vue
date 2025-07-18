@@ -7,7 +7,7 @@ const props = defineProps({
     flipped: Boolean
 });
 
-const emit = defineEmits(['add-element', 'update-position']);
+const emit = defineEmits(['add-element', 'update-position', 'select-element', 'deselect-all']);
 
 // Координаты
 const offset = ref({ x: 0, y: 0 });
@@ -51,7 +51,18 @@ function onMouseUp() {
     }
 }
 
-// Убираем обработчик клика по канвасу, так как элементы должны добавляться только через кнопки
+// Обработка клика по канвасу для снятия выбора
+function onCanvasClick(e) {
+    // Если кликнули по канвасу, а не по элементу, снимаем выбор
+    if (e.target.classList.contains('canvas-card') || e.target.classList.contains('card-side')) {
+        emit('deselect-all');
+    }
+}
+
+// Обработка выбора элемента
+function onSelectElement(elementId) {
+    emit('select-element', elementId);
+}
 </script>
 
 <template>
@@ -59,7 +70,8 @@ function onMouseUp() {
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
         @mousemove="onMouseMove"
-        @mouseleave="onMouseUp">
+        @mouseleave="onMouseUp"
+        @click="onCanvasClick">
         
         <!-- Добавляем новый контейнер для трансформаций -->
         <div class="transform-container" :style="{
@@ -79,7 +91,9 @@ function onMouseUp() {
                         :initial-x="element.x"
                         :initial-y="element.y"
                         :side="'front'"
+                        :is-selected="element.isSelected"
                         @update:position="(data) => emit('update-position', data)"
+                        @select="onSelectElement"
                     />
                 </div>
                 <div class="card-side back">
@@ -93,7 +107,9 @@ function onMouseUp() {
                         :initial-x="element.x"
                         :initial-y="element.y"
                         :side="'back'"
+                        :is-selected="element.isSelected"
                         @update:position="(data) => emit('update-position', data)"
+                        @select="onSelectElement"
                     />
                 </div>
             </div>

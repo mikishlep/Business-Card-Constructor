@@ -6,10 +6,11 @@ const props = defineProps({
   type: String,
   initialX: Number,
   initialY: Number,
-  side: String // 'front' или 'back'
+  side: String, // 'front' или 'back'
+  isSelected: Boolean // Новый проп для выбора
 });
 
-const emit = defineEmits(['update:position']);
+const emit = defineEmits(['update:position', 'select', 'deselect']);
 
 const elementRef = ref(null);
 const isDragging = ref(false);
@@ -31,6 +32,11 @@ function onMouseDown(e) {
   if (e.target.classList.contains('resize-handle')) {
     startResize(e);
     return;
+  }
+  
+  // Выбираем элемент при клике
+  if (!props.isSelected) {
+    emit('select', props.id);
   }
   
   isDragging.value = true;
@@ -190,7 +196,8 @@ onUnmounted(() => {
     :class="{ 
       'is-dragging': isDragging,
       'is-editing': isEditing,
-      'is-resizing': isResizing
+      'is-resizing': isResizing,
+      'is-selected': isSelected
     }"
     @mousedown="onMouseDown"
     @dblclick="onDoubleClick"
@@ -222,7 +229,7 @@ onUnmounted(() => {
     
     <!-- Элемент изменения размера (только для не-текстовых элементов) -->
     <div 
-      v-if="type !== 'text'"
+      v-if="type !== 'text' && isSelected"
       class="resize-handle"
       @mousedown="startResize"
     ></div>
@@ -257,13 +264,19 @@ onUnmounted(() => {
   padding: 8px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.95);
-  border: 2px solid #007bff;
+  border: 2px solid transparent; /* Прозрачная граница по умолчанию */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   pointer-events: none; /* Предотвращаем конфликты с перетаскиванием */
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: border-color 0.2s ease;
+}
+
+/* Синяя обводка только для выбранных элементов */
+.draggable-element.is-selected .element-content {
+  border-color: #007bff;
 }
 
 .text-element {
@@ -345,10 +358,5 @@ onUnmounted(() => {
 .resize-handle:hover {
   transform: scale(1.2);
   background: #0056b3;
-}
-
-/* Скрываем элемент изменения размера для текстовых элементов */
-.draggable-element:has(.text-element) .resize-handle {
-  display: none;
 }
 </style>

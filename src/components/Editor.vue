@@ -20,8 +20,13 @@ function addElement(type = 'default') {
         type: type,
         x: 50,
         y: 50,
-        side: props.flipped ? 'back' : 'front'
+        side: props.flipped ? 'back' : 'front',
+        isSelected: true // Новый элемент автоматически выбирается
     };
+    
+    // Снимаем выбор со всех других элементов
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    elements.forEach(el => el.isSelected = false);
     
     if (props.flipped) {
         backElements.value.push(newElement);
@@ -40,10 +45,42 @@ function updateElementPosition({ id, position }) {
     }
 }
 
+// Выбор элемента
+function selectElement(elementId) {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    elements.forEach(el => {
+        el.isSelected = el.id === elementId;
+    });
+}
+
+// Снятие выбора со всех элементов
+function deselectAll() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    elements.forEach(el => el.isSelected = false);
+}
+
+// Удаление выбранных элементов
+function deleteSelected() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const selectedElements = elements.filter(el => el.isSelected);
+    
+    if (selectedElements.length > 0) {
+        // Удаляем выбранные элементы
+        if (props.flipped) {
+            backElements.value = backElements.value.filter(el => !el.isSelected);
+        } else {
+            frontElements.value = frontElements.value.filter(el => !el.isSelected);
+        }
+    }
+}
+
 // Экспортируем функции для использования в родительском компоненте
 defineExpose({
     addElement,
-    updateElementPosition
+    updateElementPosition,
+    selectElement,
+    deselectAll,
+    deleteSelected
 });
 </script>
 
@@ -54,6 +91,8 @@ defineExpose({
             :elements="activeElements"
             @add-element="addElement"
             @update-position="updateElementPosition"
+            @select-element="selectElement"
+            @deselect-all="deselectAll"
         />
     </div>
 </template>

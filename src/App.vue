@@ -17,10 +17,21 @@ function handleAddElement(type) {
     editorRef.value.addElement(type);
   }
 }
+
+// Удаление выбранных элементов
+function handleDeleteSelected() {
+  if (editorRef.value) {
+    editorRef.value.deleteSelected();
+  }
+}
 </script>
 
 <template>
-  <ToolPanel @revert="handleRevert" @add-element="handleAddElement" />
+  <ToolPanel 
+    @revert="handleRevert" 
+    @add-element="handleAddElement"
+    @delete-selected="handleDeleteSelected"
+  />
   <Editor ref="editorRef" :flipped="isFlipped" />
 </template>
 
