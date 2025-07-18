@@ -51,18 +51,7 @@ function onMouseUp() {
     }
 }
 
-// Обработка клика по канвасу для добавления элемента
-function onCanvasClick(e) {
-    // Проверяем, что клик был именно по канвасу, а не по элементу
-    if (e.target.classList.contains('canvas-card') || e.target.classList.contains('card-side')) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left - offset.value.x;
-        const y = e.clientY - rect.top - offset.value.y;
-        
-        // Добавляем элемент в центр клика
-        emit('add-element', 'default');
-    }
-}
+// Убираем обработчик клика по канвасу, так как элементы должны добавляться только через кнопки
 </script>
 
 <template>
@@ -70,8 +59,7 @@ function onCanvasClick(e) {
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
         @mousemove="onMouseMove"
-        @mouseleave="onMouseUp"
-        @click="onCanvasClick">
+        @mouseleave="onMouseUp">
         
         <!-- Добавляем новый контейнер для трансформаций -->
         <div class="transform-container" :style="{
