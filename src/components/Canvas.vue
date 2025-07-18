@@ -1,9 +1,13 @@
 <script setup>
 import { ref } from 'vue';
+import DraggableItem from './DraggableItem.vue';
+
 const props = defineProps({
     elements: Array,
     flipped: Boolean
 });
+
+const emit = defineEmits(['add-element', 'update-position']);
 
 // Координаты
 const offset = ref({ x: 0, y: 0 });
@@ -46,6 +50,19 @@ function onMouseUp() {
         document.body.style.cursor = 'default';
     }
 }
+
+// Обработка клика по канвасу для добавления элемента
+function onCanvasClick(e) {
+    // Проверяем, что клик был именно по канвасу, а не по элементу
+    if (e.target.classList.contains('canvas-card') || e.target.classList.contains('card-side')) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left - offset.value.x;
+        const y = e.clientY - rect.top - offset.value.y;
+        
+        // Добавляем элемент в центр клика
+        emit('add-element', 'default');
+    }
+}
 </script>
 
 <template>
@@ -53,7 +70,8 @@ function onMouseUp() {
         @mousedown="onMouseDown"
         @mouseup="onMouseUp"
         @mousemove="onMouseMove"
-        @mouseleave="onMouseUp">
+        @mouseleave="onMouseUp"
+        @click="onCanvasClick">
         
         <!-- Добавляем новый контейнер для трансформаций -->
         <div class="transform-container" :style="{
@@ -64,9 +82,31 @@ function onMouseUp() {
             <div class="canvas-card" :class="{ flipped: props.flipped }">
                 <div class="card-side front">
                     <p>Передняя сторона визитки</p>
+                    <!-- Перетаскиваемые элементы для передней стороны -->
+                    <DraggableItem
+                        v-for="element in props.flipped ? [] : (props.elements || [])"
+                        :key="element.id"
+                        :id="element.id"
+                        :type="element.type"
+                        :initial-x="element.x"
+                        :initial-y="element.y"
+                        :side="'front'"
+                        @update:position="(data) => emit('update-position', data)"
+                    />
                 </div>
                 <div class="card-side back">
                     <p>Обратная сторона визитки</p>
+                    <!-- Перетаскиваемые элементы для обратной стороны -->
+                    <DraggableItem
+                        v-for="element in props.flipped ? (props.elements || []) : []"
+                        :key="element.id"
+                        :id="element.id"
+                        :type="element.type"
+                        :initial-x="element.x"
+                        :initial-y="element.y"
+                        :side="'back'"
+                        @update:position="(data) => emit('update-position', data)"
+                    />
                 </div>
             </div>
         </div>
@@ -89,6 +129,7 @@ function onMouseUp() {
     align-items: center;
     height: 100%;
     width: 100%;
+    perspective: 1000px; /* Добавляем перспективу для 3D-эффекта */
 }
 
 /* Остальные стили с исправлениями */
@@ -107,6 +148,8 @@ function onMouseUp() {
 
 .card-side {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     backface-visibility: hidden; /* Скрываем обратную сторону */
@@ -121,7 +164,7 @@ function onMouseUp() {
 
 .front {
     background-color: #fff;
-    z-index: 2;
+    transform: rotateY(0deg); /* Явно указываем поворот */
 }
 
 .back {

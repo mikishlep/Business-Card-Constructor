@@ -1,11 +1,16 @@
 <script setup>
-const emit = defineEmits(['revert']);
+const emit = defineEmits(['revert', 'add-element']);
+
+// Обработка клика по кнопке добавления
+function handleAddElement() {
+    emit('add-element', 'default');
+}
 </script>
 
 <template>
   <section class="toolPanel">
     <div class="toolPanel-container">
-        <button id="add-tool" class="toolPanel-buttons">
+        <button id="add-tool" class="toolPanel-buttons" @click="handleAddElement">
             <img src="../assets/icons/add.svg" alt="Добавить компонент">
         </button>
         <button id="move-tool" class="toolPanel-buttons">
@@ -17,7 +22,7 @@ const emit = defineEmits(['revert']);
         <button id="delete-tool" class="toolPanel-buttons">
             <img src="../assets/icons/trash.svg" alt="Удалить компонент">
         </button>
-        <button id="add-text-tool" class="toolPanel-buttons">
+        <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">
             <img src="../assets/icons/letter.svg" alt="Добавить текст">
         </button>
         <button id="look-tool" class="toolPanel-buttons">
