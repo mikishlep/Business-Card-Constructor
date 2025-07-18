@@ -14,8 +14,11 @@ const emit = defineEmits(['update:position']);
 const elementRef = ref(null);
 const isDragging = ref(false);
 const isEditing = ref(false);
+const isResizing = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
+const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
+const size = ref({ width: 100, height: 80 }); // Начальный размер
 
 // Начало перетаскивания
 function onMouseDown(e) {
@@ -23,6 +26,12 @@ function onMouseDown(e) {
   
   // Если это текстовый элемент и мы в режиме редактирования, не начинаем перетаскивание
   if (props.type === 'text' && isEditing.value) return;
+  
+  // Проверяем, не кликнули ли мы по элементу изменения размера
+  if (e.target.classList.contains('resize-handle')) {
+    startResize(e);
+    return;
+  }
   
   isDragging.value = true;
   
@@ -37,36 +46,84 @@ function onMouseDown(e) {
   e.preventDefault();
 }
 
-// Перетаскивание
-function onMouseMove(e) {
-  if (!isDragging.value) return;
+// Начало изменения размера
+function startResize(e) {
+  if (props.type === 'text') return; // Текстовые элементы не изменяют размер
   
-  // Находим родительский контейнер карточки
-  const cardContainer = elementRef.value.closest('.card-side');
-  if (!cardContainer) return;
+  isResizing.value = true;
   
-  const cardRect = cardContainer.getBoundingClientRect();
-  
-  // Вычисляем новую позицию относительно карточки
-  const newX = e.clientX - cardRect.left - dragOffset.value.x;
-  const newY = e.clientY - cardRect.top - dragOffset.value.y;
-  
-  // Ограничиваем позицию границами карточки
-  const maxX = cardRect.width - elementRef.value.offsetWidth;
-  const maxY = cardRect.height - elementRef.value.offsetHeight;
-  
-  position.value = {
-    x: Math.max(0, Math.min(newX, maxX)),
-    y: Math.max(0, Math.min(newY, maxY))
+  const rect = elementRef.value.getBoundingClientRect();
+  resizeStart.value = {
+    x: e.clientX,
+    y: e.clientY,
+    width: size.value.width,
+    height: size.value.height
   };
+  
+  document.body.style.cursor = 'nw-resize';
+  e.preventDefault();
+  e.stopPropagation();
 }
 
-// Завершение перетаскивания
+// Перетаскивание
+function onMouseMove(e) {
+  if (isDragging.value) {
+    // Находим родительский контейнер карточки
+    const cardContainer = elementRef.value.closest('.card-side');
+    if (!cardContainer) return;
+    
+    const cardRect = cardContainer.getBoundingClientRect();
+    
+    // Вычисляем новую позицию относительно карточки
+    const newX = e.clientX - cardRect.left - dragOffset.value.x;
+    const newY = e.clientY - cardRect.top - dragOffset.value.y;
+    
+    // Ограничиваем позицию границами карточки
+    const maxX = cardRect.width - size.value.width;
+    const maxY = cardRect.height - size.value.height;
+    
+    position.value = {
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    };
+  }
+  
+  if (isResizing.value) {
+    // Вычисляем новый размер
+    const deltaX = e.clientX - resizeStart.value.x;
+    const deltaY = e.clientY - resizeStart.value.y;
+    
+    const newWidth = Math.max(50, resizeStart.value.width + deltaX);
+    const newHeight = Math.max(30, resizeStart.value.height + deltaY);
+    
+    // Ограничиваем размер границами карточки
+    const cardContainer = elementRef.value.closest('.card-side');
+    if (cardContainer) {
+      const cardRect = cardContainer.getBoundingClientRect();
+      const maxWidth = cardRect.width - position.value.x;
+      const maxHeight = cardRect.height - position.value.y;
+      
+      size.value = {
+        width: Math.min(newWidth, maxWidth),
+        height: Math.min(newHeight, maxHeight)
+      };
+    } else {
+      size.value = { width: newWidth, height: newHeight };
+    }
+  }
+}
+
+// Завершение перетаскивания или изменения размера
 function onMouseUp() {
   if (isDragging.value) {
     isDragging.value = false;
     document.body.style.cursor = 'default';
     emit('update:position', { id: props.id, position: position.value });
+  }
+  
+  if (isResizing.value) {
+    isResizing.value = false;
+    document.body.style.cursor = 'default';
   }
 }
 
@@ -124,13 +181,16 @@ onUnmounted(() => {
     :style="{
       left: position.x + 'px',
       top: position.y + 'px',
-      transform: isDragging ? 'scale(1.05)' : 'scale(1)',
-      transition: isDragging ? 'none' : 'transform 0.1s ease'
+      width: size.width + 'px',
+      height: size.height + 'px',
+      transform: isDragging || isResizing ? 'scale(1.02)' : 'scale(1)',
+      transition: (isDragging || isResizing) ? 'none' : 'transform 0.1s ease'
     }"
     class="draggable-element"
     :class="{ 
       'is-dragging': isDragging,
-      'is-editing': isEditing 
+      'is-editing': isEditing,
+      'is-resizing': isResizing
     }"
     @mousedown="onMouseDown"
     @dblclick="onDoubleClick"
@@ -159,6 +219,13 @@ onUnmounted(() => {
         </div>
       </template>
     </div>
+    
+    <!-- Элемент изменения размера (только для не-текстовых элементов) -->
+    <div 
+      v-if="type !== 'text'"
+      class="resize-handle"
+      @mousedown="startResize"
+    ></div>
   </div>
 </template>
 
@@ -179,25 +246,36 @@ onUnmounted(() => {
   z-index: 50;
 }
 
+.draggable-element.is-resizing {
+  z-index: 100;
+  opacity: 0.9;
+}
+
 .element-content {
-  min-width: 50px;
-  min-height: 30px;
+  width: 100%;
+  height: 100%;
   padding: 8px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid #007bff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   pointer-events: none; /* Предотвращаем конфликты с перетаскиванием */
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .text-element {
   pointer-events: auto; /* Разрешаем редактирование текста */
+  width: 100%;
+  height: 100%;
 }
 
 .text-element p {
   margin: 0;
-  min-width: 100px;
-  min-height: 20px;
+  width: 100%;
+  height: 100%;
   outline: none;
   border: none;
   background: transparent;
@@ -205,6 +283,9 @@ onUnmounted(() => {
   padding: 4px;
   border-radius: 3px;
   transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .text-element p.editing {
@@ -218,13 +299,23 @@ onUnmounted(() => {
   border: 1px solid #007bff;
 }
 
+.image-element {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .image-element img {
-  width: 40px;
-  height: 40px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
 .default-element {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,5 +324,31 @@ onUnmounted(() => {
 .element-placeholder {
   font-size: 12px;
   color: #666;
+}
+
+/* Элемент изменения размера */
+.resize-handle {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  background: #007bff;
+  border: 2px solid white;
+  border-radius: 50%;
+  cursor: nw-resize;
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.resize-handle:hover {
+  transform: scale(1.2);
+  background: #0056b3;
+}
+
+/* Скрываем элемент изменения размера для текстовых элементов */
+.draggable-element:has(.text-element) .resize-handle {
+  display: none;
 }
 </style>
