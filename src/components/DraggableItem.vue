@@ -15,6 +15,10 @@ const props = defineProps({
   borderColor: String,
   borderWidth: Number,
   borderRadius: Number,
+  borderRadiusTopLeft: Number,
+  borderRadiusTopRight: Number,
+  borderRadiusBottomLeft: Number,
+  borderRadiusBottomRight: Number,
   opacity: Number,
   hasShadow: Boolean,
   text: Object
@@ -29,35 +33,37 @@ const isResizing = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
+
+// Инициализируем размеры с учетом пропсов или значений по умолчанию
 const size = ref({ 
-  width: props.width || 100, 
-  height: props.height || 80 
+  width: props.width || (props.type === 'text' ? 120 : 100), 
+  height: props.height || (props.type === 'text' ? 60 : 80) 
 });
 
 // Следим за изменениями пропсов и обновляем локальные значения
 watch(() => props.width, (newWidth) => {
-  if (newWidth !== undefined) {
+  if (newWidth !== undefined && newWidth !== null) {
     size.value.width = newWidth;
   }
-});
+}, { immediate: true });
 
 watch(() => props.height, (newHeight) => {
-  if (newHeight !== undefined) {
+  if (newHeight !== undefined && newHeight !== null) {
     size.value.height = newHeight;
   }
-});
+}, { immediate: true });
 
 watch(() => props.initialX, (newX) => {
-  if (newX !== undefined) {
+  if (newX !== undefined && newX !== null) {
     position.value.x = newX;
   }
-});
+}, { immediate: true });
 
 watch(() => props.initialY, (newY) => {
-  if (newY !== undefined) {
+  if (newY !== undefined && newY !== null) {
     position.value.y = newY;
   }
-});
+}, { immediate: true });
 
 // Начало перетаскивания
 function onMouseDown(e) {
@@ -153,12 +159,21 @@ function onMouseUp() {
   if (isDragging.value) {
     isDragging.value = false;
     document.body.style.cursor = 'default';
-    emit('update:position', { id: props.id, position: position.value });
+    emit('update:position', { 
+      id: props.id, 
+      position: position.value,
+      size: size.value // Добавляем размеры в обновление
+    });
   }
   
   if (isResizing.value) {
     isResizing.value = false;
     document.body.style.cursor = 'default';
+    emit('update:position', { 
+      id: props.id, 
+      position: position.value,
+      size: size.value // Добавляем размеры в обновление
+    });
   }
 }
 
@@ -208,21 +223,31 @@ const elementStyles = computed(() => {
     opacity: props.opacity || 1
   };
   
-  if (props.hasShadow) {
-    styles.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-  }
-  
   return styles;
 });
 
 // Вычисляем стили контента
 const contentStyles = computed(() => {
-  return {
+  const styles = {
     backgroundColor: props.backgroundColor || '#ffffff',
-    borderColor: props.isSelected ? (props.borderColor || '#007bff') : 'transparent',
-    borderWidth: (props.borderWidth || 2) + 'px',
-    borderRadius: (props.borderRadius || 6) + 'px'
+    borderWidth: (props.borderWidth || 0) + 'px',
+    borderStyle: 'solid',
+    borderColor: props.borderColor || 'transparent'
   };
+
+  // Применяем border-radius
+  if (props.borderRadiusTopLeft || props.borderRadiusTopRight || props.borderRadiusBottomLeft || props.borderRadiusBottomRight) {
+    styles.borderRadius = `${props.borderRadiusTopLeft || 0}px ${props.borderRadiusTopRight || 0}px ${props.borderRadiusBottomRight || 0}px ${props.borderRadiusBottomLeft || 0}px`;
+  } else {
+    styles.borderRadius = (props.borderRadius || 0) + 'px';
+  }
+
+  // Добавляем тень только если включена
+  if (props.hasShadow) {
+    styles.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+  }
+
+  return styles;
 });
 
 // Вычисляем стили текста
@@ -239,6 +264,16 @@ const textStyles = computed(() => {
     fontWeight: props.text.bold ? 'bold' : 'normal',
     fontStyle: props.text.italic ? 'italic' : 'normal',
     textDecoration: props.text.underline ? 'underline' : 'none'
+  };
+});
+
+// Вычисляем стили выделения
+const selectionStyles = computed(() => {
+  if (!props.isSelected) return {};
+  
+  return {
+    outline: `2px solid #007bff`,
+    outlineOffset: '2px'
   };
 });
 
@@ -288,7 +323,7 @@ onUnmounted(() => {
       </template>
       <template v-else>
         <div class="default-element">
-          <div class="element-placeholder">Элемент</div>
+          <div class="element-placeholder"></div>
         </div>
       </template>
     </div>
@@ -298,6 +333,13 @@ onUnmounted(() => {
       v-if="isSelected"
       class="resize-handle"
       @mousedown="startResize"
+    ></div>
+
+    <!-- Индикатор выделения -->
+    <div 
+      v-if="isSelected"
+      class="selection-indicator"
+      :style="selectionStyles"
     ></div>
   </div>
 </template>
@@ -328,14 +370,11 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   padding: 8px;
-  border: 2px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .text-element {
@@ -419,5 +458,15 @@ onUnmounted(() => {
 .resize-handle:hover {
   transform: scale(1.2);
   background: #0056b3;
+}
+
+.selection-indicator {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  pointer-events: none;
+  z-index: 5;
 }
 </style>

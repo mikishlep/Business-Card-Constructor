@@ -13,46 +13,43 @@ function handleDeleteSelected() {
 </script>
 
 <template>
-  <section class="toolPanel">
-    <div class="toolPanel-container">
-        <button id="add-tool" class="toolPanel-buttons" @click="handleAddElement">
-            <img src="../assets/icons/add.svg" alt="Добавить компонент">
-        </button>
-        <button id="move-tool" class="toolPanel-buttons">
-            <img src="../assets/icons/move.svg" alt="Передвинуть">
-        </button>
-        <button id="save-tool" class="toolPanel-buttons">
-            <img src="../assets/icons/save.svg" alt="Сохранить визитку">
-        </button>
-        <button id="delete-tool" class="toolPanel-buttons" @click="handleDeleteSelected">
-            <img src="../assets/icons/trash.svg" alt="Удалить компонент">
-        </button>
-        <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">
-            <img src="../assets/icons/letter.svg" alt="Добавить текст">
-        </button>
-        <button id="look-tool" class="toolPanel-buttons">
-            <img src="../assets/icons/eye.svg" alt="Осмотреть визитку">
+  <section class="toolPanel-wrapper">
+    <div class="toolPanel">
+        <div class="toolPanel-container">
+            <button id="add-tool" class="toolPanel-buttons" @click="handleAddElement">
+                <img src="../assets/icons/add.svg" alt="Добавить компонент">
+            </button>
+            <button id="move-tool" class="toolPanel-buttons">
+                <img src="../assets/icons/move.svg" alt="Передвинуть">
+            </button>
+            <button id="save-tool" class="toolPanel-buttons">
+                <img src="../assets/icons/save.svg" alt="Сохранить визитку">
+            </button>
+            <button id="delete-tool" class="toolPanel-buttons" @click="handleDeleteSelected">
+                <img src="../assets/icons/trash.svg" alt="Удалить компонент">
+            </button>
+            <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">
+                <img src="../assets/icons/letter.svg" alt="Добавить текст">
+            </button>
+            <button id="look-tool" class="toolPanel-buttons">
+                <img src="../assets/icons/eye.svg" alt="Осмотреть визитку">
+            </button>
+        </div>
+    </div>
+    <div class="turn-panel">
+        <button 
+            id="revert-tool" 
+            class="toolPanel-buttons"
+            @click="emit('revert')"
+        >
+            <img src="../assets/icons/revert.svg" alt="Повернуть визитку">
         </button>
     </div>
   </section>
-  <div class="turn-panel">
-    <button 
-        id="revert-tool" 
-        class="toolPanel-buttons"
-        @click="emit('revert')"
-    >
-        <img src="../assets/icons/revert.svg" alt="Повернуть визитку">
-    </button>
-  </div>
 </template>
 
 <style scoped>
 .toolPanel {
-    position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-
     padding: 16px;
     border-radius: 14px;
     background: #2c2c2c;
@@ -64,10 +61,20 @@ function handleDeleteSelected() {
     transition: all 0.3s ease;
 }
 
+.toolPanel-wrapper {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    gap: 15px;
+    z-index: 10;
+}
+
 .toolPanel-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    /*grid-template-columns: repeat(2, 1fr);*/
+    gap: 15px;
 }
 
 .toolPanel-buttons {
@@ -80,16 +87,13 @@ function handleDeleteSelected() {
 }
 
 .toolPanel-buttons img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
 .turn-panel {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translatey(-50%);
+
 
     padding: 16px;
     border-radius: 14px;

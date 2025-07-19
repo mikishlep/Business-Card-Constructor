@@ -26,14 +26,18 @@ function addElement(type = 'default') {
         type: type,
         x: 50,
         y: 50,
-        width: 100,
-        height: type === 'text' ? 80 : 60,
+        width: type === 'text' ? 120 : 100,
+        height: type === 'text' ? 60 : 80,
         side: props.flipped ? 'back' : 'front',
         isSelected: true,
-        backgroundColor: 'none',
-        borderColor: '#007bff',
-        borderWidth: 2,
-        borderRadius: 6,
+        backgroundColor: '#ffffff',
+        borderColor: '#000000',
+        borderWidth: 0,
+        borderRadius: 0,
+        borderRadiusTopLeft: 0,
+        borderRadiusTopRight: 0,
+        borderRadiusBottomLeft: 0,
+        borderRadiusBottomRight: 0,
         opacity: 1,
         hasShadow: false,
         text: type === 'text' ? {
@@ -59,13 +63,18 @@ function addElement(type = 'default') {
     }
 }
 
-// Обновление позиции элемента
-function updateElementPosition({ id, position }) {
+// Обновление позиции и размера элемента
+function updateElementPosition({ id, position, size }) {
     const elements = props.flipped ? backElements.value : frontElements.value;
     const element = elements.find(el => el.id === id);
     if (element) {
         element.x = position.x;
         element.y = position.y;
+        // Добавляем обновление размеров
+        if (size) {
+            element.width = size.width;
+            element.height = size.height;
+        }
     }
 }
 

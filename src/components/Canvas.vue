@@ -98,6 +98,10 @@ function onSelectElement(elementId) {
                         :border-color="element.borderColor"
                         :border-width="element.borderWidth"
                         :border-radius="element.borderRadius"
+                        :border-radius-top-left="element.borderRadiusTopLeft"
+                        :border-radius-top-right="element.borderRadiusTopRight"
+                        :border-radius-bottom-left="element.borderRadiusBottomLeft"
+                        :border-radius-bottom-right="element.borderRadiusBottomRight"
                         :opacity="element.opacity"
                         :has-shadow="element.hasShadow"
                         :text="element.text"
@@ -123,6 +127,10 @@ function onSelectElement(elementId) {
                         :border-color="element.borderColor"
                         :border-width="element.borderWidth"
                         :border-radius="element.borderRadius"
+                        :border-radius-top-left="element.borderRadiusTopLeft"
+                        :border-radius-top-right="element.borderRadiusTopRight"
+                        :border-radius-bottom-left="element.borderRadiusBottomLeft"
+                        :border-radius-bottom-right="element.borderRadiusBottomRight"
                         :opacity="element.opacity"
                         :has-shadow="element.hasShadow"
                         :text="element.text"
@@ -182,6 +190,8 @@ function onSelectElement(elementId) {
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     padding: 16px;
     box-sizing: border-box;
+    /* Добавляем transform-style для сохранения размеров элементов */
+    transform-style: preserve-3d;
 }
 
 .front {
@@ -192,5 +202,10 @@ function onSelectElement(elementId) {
 .back {
     background-color: #f0f0f0;
     transform: rotateY(180deg); /* Изначально перевернута */
+}
+
+/* Добавляем стили для сохранения размеров элементов при повороте */
+.card-side * {
+    transform-style: preserve-3d;
 }
 </style>

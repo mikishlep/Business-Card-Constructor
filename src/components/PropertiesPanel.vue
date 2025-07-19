@@ -129,7 +129,7 @@ function togglePanel() {
         <label>Цвет границы</label>
         <input 
           type="color" 
-          :value="selectedElement?.borderColor || '#007bff'"
+          :value="selectedElement?.borderColor || '#000000'"
           @input="updateProperty('borderColor', $event.target.value)"
         />
       </div>
@@ -137,18 +137,64 @@ function togglePanel() {
         <label>Толщина границы (px)</label>
         <input 
           type="number" 
-          :value="selectedElement?.borderWidth || 2"
+          :value="selectedElement?.borderWidth || 0"
           @input="updateProperty('borderWidth', parseInt($event.target.value))"
           min="0"
           max="20"
         />
       </div>
+      
+      <!-- Закругления углов -->
       <div class="property-group">
-        <label>Закругление углов (px)</label>
+        <label>Общее закругление (px)</label>
         <input 
           type="number" 
-          :value="selectedElement?.borderRadius || 6"
+          :value="selectedElement?.borderRadius || 0"
           @input="updateProperty('borderRadius', parseInt($event.target.value))"
+          min="0"
+          max="50"
+        />
+      </div>
+      
+      <div class="property-group">
+        <label>Верхний левый угол (px)</label>
+        <input 
+          type="number" 
+          :value="selectedElement?.borderRadiusTopLeft || 0"
+          @input="updateProperty('borderRadiusTopLeft', parseInt($event.target.value))"
+          min="0"
+          max="50"
+        />
+      </div>
+      
+      <div class="property-group">
+        <label>Верхний правый угол (px)</label>
+        <input 
+          type="number" 
+          :value="selectedElement?.borderRadiusTopRight || 0"
+          @input="updateProperty('borderRadiusTopRight', parseInt($event.target.value))"
+          min="0"
+          max="50"
+        />
+      </div>
+      
+      <div class="property-group">
+        <label>Нижний правый угол (px)</label>
+        <input 
+          type="number" 
+          :value="selectedElement?.borderRadiusBottomRight || 0"
+          @input="updateProperty('borderRadiusBottomRight', parseInt($event.target.value))"
+          min="0"
+          max="50"
+        />
+      </div>
+      
+      <div class="property-group">
+        <label>Нижний левый угол (px)</label>
+        <input 
+          type="number" 
+          :value="selectedElement?.borderRadiusBottomLeft || 0"
+          @input="updateProperty('borderRadiusBottomLeft', parseInt($event.target.value))"
           min="0"
           max="50"
         />
@@ -239,8 +285,8 @@ function togglePanel() {
       </div>
     </div>
 
-    <!-- Специальные свойства для обычных элементов -->
-    <div class="section" v-if="selectedElement?.type !== 'text'">
+    <!-- Специальные свойства для всех элементов -->
+    <div class="section">
       <h4>Дополнительные свойства</h4>
       <div class="property-group">
         <label>Прозрачность</label>
