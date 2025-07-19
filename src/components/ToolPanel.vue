@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
@@ -25,6 +25,11 @@ function handleToggleBackgroundPanel() {
 function handleAddImage() {
     emit('add-element', 'image');
 }
+
+// Обработка клика по кнопке сохранения
+function handleSave() {
+    emit('open-save-modal');
+}
 </script>
 
 <template>
@@ -37,7 +42,7 @@ function handleAddImage() {
             <button id="move-tool" class="toolPanel-buttons">
                 <img src="../assets/icons/move.svg" alt="Передвинуть">
             </button>
-            <button id="save-tool" class="toolPanel-buttons">
+            <button id="save-tool" class="toolPanel-buttons" @click="handleSave">
                 <img src="../assets/icons/save.svg" alt="Сохранить визитку">
             </button>
             <button id="delete-tool" class="toolPanel-buttons" @click="handleDeleteSelected">

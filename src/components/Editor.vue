@@ -181,7 +181,11 @@ defineExpose({
     deselectAll,
     deleteSelected,
     getSelectedElement,
-    activeBackground
+    activeBackground,
+    frontElements,
+    backElements,
+    frontBackground,
+    backBackground
 });
 </script>
 
