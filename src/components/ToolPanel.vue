@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element', 'delete-selected']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
@@ -9,6 +9,16 @@ function handleAddElement() {
 // Обработка клика по кнопке удаления
 function handleDeleteSelected() {
     emit('delete-selected');
+}
+
+// Обработка клика по кнопке переключения панели свойств
+function handleTogglePropertiesPanel() {
+    emit('toggle-properties-panel');
+}
+
+// Обработка клика по кнопке переключения панели фона
+function handleToggleBackgroundPanel() {
+    emit('toggle-background-panel');
 }
 </script>
 
@@ -44,6 +54,18 @@ function handleDeleteSelected() {
         >
             <img src="../assets/icons/revert.svg" alt="Повернуть визитку">
         </button>
+        <button 
+            id="background-tool" 
+            class="toolPanel-buttons"
+            @click="handleToggleBackgroundPanel"
+            title="Панель фона"
+        >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+            </svg>
+        </button>
     </div>
   </section>
 </template>
@@ -78,23 +100,21 @@ function handleDeleteSelected() {
 }
 
 .toolPanel-buttons {
-  cursor: pointer;
-  transition: transform 0.2s;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
 .toolPanel-buttons:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .toolPanel-buttons img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
 }
 
 .turn-panel {
-
-
     padding: 16px;
     border-radius: 14px;
     background: #2c2c2c;
@@ -104,5 +124,7 @@ function handleDeleteSelected() {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
     z-index: 10;
     transition: all 0.3s ease;
+    display: grid;
+    gap: 25px;
 }
 </style>

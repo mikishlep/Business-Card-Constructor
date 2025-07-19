@@ -75,6 +75,8 @@ const activeBackground = computed(() => {
     @revert="handleRevert" 
     @add-element="handleAddElement"
     @delete-selected="handleDeleteSelected"
+    @toggle-properties-panel="togglePropertiesPanel"
+    @toggle-background-panel="toggleBackgroundPanel"
   />
   <Editor ref="editorRef" :flipped="isFlipped" />
   <PropertiesPanel 
