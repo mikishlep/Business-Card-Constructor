@@ -7,7 +7,7 @@ import { ref, computed } from 'vue';
 
 const isFlipped = ref(false);
 const isPropertiesPanelVisible = ref(false);
-const isBackgroundPanelVisible = ref(true);
+const isBackgroundPanelVisible = ref(false);
 const editorRef = ref(null);
 
 // Разворот визитки
