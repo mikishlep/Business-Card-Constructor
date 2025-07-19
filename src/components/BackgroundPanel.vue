@@ -13,6 +13,14 @@ const emit = defineEmits(['update-background', 'toggle-visibility']);
 
 const fileInput = ref(null);
 
+// Коллекция фонов
+const backgroundCollection = [
+  '/src/assets/backgrounds/background1.jpg',
+  '/src/assets/backgrounds/background2.jpg',
+  '/src/assets/backgrounds/background3.jpg',
+  '/src/assets/backgrounds/background4.jpg'
+];
+
 // Обновление типа фона
 function updateBackgroundType(type) {
   emit('update-background', { type });
@@ -21,6 +29,11 @@ function updateBackgroundType(type) {
 // Обновление цвета фона
 function updateBackgroundColor(event) {
   emit('update-background', { type: 'color', value: event.target.value });
+}
+
+// Выбор фона из коллекции
+function selectFromCollection(imagePath) {
+  emit('update-background', { type: 'collection', value: imagePath });
 }
 
 // Загрузка изображения
@@ -78,6 +91,13 @@ function togglePanel() {
         </button>
         <button 
           class="type-button"
+          :class="{ active: background?.type === 'collection' }"
+          @click="updateBackgroundType('collection')"
+        >
+          Коллекция
+        </button>
+        <button 
+          class="type-button"
           :class="{ active: background?.type === 'image' }"
           @click="updateBackgroundType('image')"
         >
@@ -102,6 +122,24 @@ function togglePanel() {
           :value="background.value || '#ffffff'"
           @input="updateBackgroundColor"
         >
+      </div>
+    </div>
+
+    <!-- Коллекция фонов -->
+    <div v-if="background?.type === 'collection'" class="section">
+      <div class="property-group">
+        <label>Выберите фон из коллекции (Shift + колесо)</label>
+        <div class="background-collection">
+          <div 
+            v-for="(bgPath, index) in backgroundCollection" 
+            :key="index"
+            class="collection-item"
+            :class="{ active: background?.value === bgPath }"
+            @click="selectFromCollection(bgPath)"
+          >
+            <img :src="bgPath" :alt="`Фон ${index + 1}`">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -218,7 +256,7 @@ function togglePanel() {
 
 .background-type-buttons {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
@@ -259,6 +297,47 @@ function togglePanel() {
   border: none;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.background-collection {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 5px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.background-collection::-webkit-scrollbar {
+  display: none;
+}
+
+.collection-item {
+  flex-shrink: 0;
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.collection-item:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.collection-item.active {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+}
+
+.collection-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .upload-button {

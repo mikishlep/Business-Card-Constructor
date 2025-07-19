@@ -67,6 +67,7 @@ const backgroundStyles = computed(() => {
         case 'transparent':
             return { backgroundColor: 'transparent' };
         case 'image':
+        case 'collection':
             return { 
                 backgroundImage: `url(${props.background.value})`,
                 backgroundSize: 'cover',
@@ -198,20 +199,9 @@ const backgroundStyles = computed(() => {
     align-items: center;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    padding: 16px;
-    box-sizing: border-box;
-    transform-style: preserve-3d;
 }
 
-.front {
-    transform: rotateY(0deg);
-}
-
-.back {
+.card-side.back {
     transform: rotateY(180deg);
-}
-
-.card-side * {
-    transform-style: preserve-3d;
 }
 </style>
