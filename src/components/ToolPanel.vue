@@ -74,7 +74,7 @@ function handleDeleteSelected() {
 .toolPanel-container {
     display: grid;
     /*grid-template-columns: repeat(2, 1fr);*/
-    gap: 15px;
+    gap: 25px;
 }
 
 .toolPanel-buttons {
