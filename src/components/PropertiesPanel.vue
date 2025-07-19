@@ -67,7 +67,7 @@ function setColorBackground(color) {
     @click="togglePanel" 
     title="Свернуть панель"
   >
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <polyline points="9,18 15,12 9,6"></polyline>
     </svg>
   </button>
@@ -357,7 +357,7 @@ function setColorBackground(color) {
     @click="togglePanel" 
     title="Развернуть панель свойств"
   >
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <polyline points="15,18 9,12 15,6"></polyline>
     </svg>
   </button>

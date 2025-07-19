@@ -19,8 +19,8 @@ function updateBackgroundType(type) {
 }
 
 // Обновление цвета фона
-function updateBackgroundColor(color) {
-  emit('update-background', { type: 'color', value: color });
+function updateBackgroundColor(event) {
+  emit('update-background', { type: 'color', value: event.target.value });
 }
 
 // Загрузка изображения
@@ -99,7 +99,7 @@ function togglePanel() {
         <label>Цвет фона</label>
         <input 
           type="color" 
-          :value="background.color || '#ffffff'"
+          :value="background.value || '#ffffff'"
           @input="updateBackgroundColor"
         >
       </div>
@@ -125,8 +125,8 @@ function togglePanel() {
         </button>
       </div>
       
-      <div v-if="background?.imageUrl" class="image-preview">
-        <img :src="background.imageUrl" alt="Предварительный просмотр">
+      <div v-if="background?.value" class="image-preview">
+        <img :src="background.value" alt="Предварительный просмотр">
       </div>
     </div>
 

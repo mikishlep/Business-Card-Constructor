@@ -20,6 +20,11 @@ function handleTogglePropertiesPanel() {
 function handleToggleBackgroundPanel() {
     emit('toggle-background-panel');
 }
+
+// Обработка клика по кнопке добавления изображения
+function handleAddImage() {
+    emit('add-element', 'image');
+}
 </script>
 
 <template>
@@ -41,6 +46,13 @@ function handleToggleBackgroundPanel() {
             <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">
                 <img src="../assets/icons/letter.svg" alt="Добавить текст">
             </button>
+            <button id="add-image-tool" class="toolPanel-buttons" @click="handleAddImage">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <path d="M21 15l-5-5L5 21"></path>
+                </svg>
+            </button>
             <button id="look-tool" class="toolPanel-buttons">
                 <img src="../assets/icons/eye.svg" alt="Осмотреть визитку">
             </button>
@@ -60,11 +72,7 @@ function handleToggleBackgroundPanel() {
             @click="handleToggleBackgroundPanel"
             title="Панель фона"
         >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="9" cy="9" r="2"></circle>
-                <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-            </svg>
+            <img src="../assets/icons/settings.svg" alt="" style="width: 18px; height: 18px;">
         </button>
     </div>
   </section>

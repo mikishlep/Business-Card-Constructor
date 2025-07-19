@@ -70,6 +70,30 @@ function addElement(type = 'default') {
         imageUrl: type === 'image' ? null : null
     };
     
+    // Если это изображение, открываем диалог выбора файла
+    if (type === 'image') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    newElement.imageUrl = e.target.result;
+                    // Обновляем элемент в массиве
+                    const elements = props.flipped ? backElements.value : frontElements.value;
+                    const elementIndex = elements.findIndex(el => el.id === newElement.id);
+                    if (elementIndex !== -1) {
+                        elements[elementIndex] = { ...newElement };
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+        input.click();
+    }
+    
     // Снимаем выбор со всех других элементов
     const elements = props.flipped ? backElements.value : frontElements.value;
     elements.forEach(el => el.isSelected = false);
