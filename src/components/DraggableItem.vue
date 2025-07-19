@@ -21,7 +21,7 @@ const props = defineProps({
   opacity: Number,
   hasShadow: Boolean,
   text: Object,
-  imageUrl: String // Новое свойство для изображений
+  imageUrl: String
 });
 
 const emit = defineEmits(['update:position', 'select']);
@@ -228,11 +228,17 @@ const elementStyles = computed(() => {
 // Вычисляем стили контента
 const contentStyles = computed(() => {
   const styles = {
-    backgroundColor: props.backgroundColor || '#ffffff',
     borderWidth: (props.borderWidth || 0) + 'px',
     borderStyle: 'solid',
     borderColor: props.borderColor || 'transparent'
   };
+
+  // Обрабатываем прозрачный фон
+  if (props.backgroundColor === 'transparent') {
+    styles.backgroundColor = 'transparent';
+  } else {
+    styles.backgroundColor = props.backgroundColor || '#ffffff';
+  }
 
   if (props.borderRadiusTopLeft || props.borderRadiusTopRight || props.borderRadiusBottomLeft || props.borderRadiusBottomRight) {
     styles.borderRadius = `${props.borderRadiusTopLeft || 0}px ${props.borderRadiusTopRight || 0}px ${props.borderRadiusBottomRight || 0}px ${props.borderRadiusBottomLeft || 0}px`;

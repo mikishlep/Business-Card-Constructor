@@ -16,6 +16,11 @@ const hasSelection = computed(() => {
   return props.selectedElement && props.selectedElement.isSelected;
 });
 
+// Проверяем, прозрачный ли фон
+const isTransparentBackground = computed(() => {
+  return props.selectedElement?.backgroundColor === 'transparent';
+});
+
 // Обновление свойств элемента
 function updateProperty(property, value) {
   if (props.selectedElement) {
@@ -42,12 +47,22 @@ function updateTextProperty(property, value) {
 function togglePanel() {
   emit('toggle-visibility');
 }
+
+// Установка прозрачного фона
+function setTransparentBackground() {
+  updateProperty('backgroundColor', 'transparent');
+}
+
+// Установка цветного фона
+function setColorBackground(color) {
+  updateProperty('backgroundColor', color);
+}
 </script>
 
 <template>
-  <!-- Кнопка сворачивания (всегда видна когда панель открыта) -->
+  <!-- Кнопка сворачивания -->
   <button 
-    v-if="isVisible" 
+    v-if="isVisible && hasSelection" 
     class="collapse-button" 
     @click="togglePanel" 
     title="Свернуть панель"
@@ -62,8 +77,8 @@ function togglePanel() {
     class="properties-panel" 
     :class="{ 
       'has-selection': hasSelection,
-      'panel-visible': isVisible,
-      'panel-hidden': !isVisible
+      'panel-visible': isVisible && hasSelection,
+      'panel-hidden': !isVisible || !hasSelection
     }"
   >
     <div class="panel-header">
@@ -117,14 +132,38 @@ function togglePanel() {
     <!-- Стили элемента -->
     <div class="section">
       <h4>Стили</h4>
+      
+      <!-- Выбор типа фона -->
       <div class="property-group">
+        <label>Тип фона</label>
+        <div class="background-type-buttons">
+          <button 
+            class="type-button"
+            :class="{ active: !isTransparentBackground }"
+            @click="setColorBackground('#ffffff')"
+          >
+            Цвет
+          </button>
+          <button 
+            class="type-button"
+            :class="{ active: isTransparentBackground }"
+            @click="setTransparentBackground"
+          >
+            Прозрачный
+          </button>
+        </div>
+      </div>
+      
+      <!-- Выбор цвета фона (только если не прозрачный) -->
+      <div class="property-group" v-if="!isTransparentBackground">
         <label>Цвет фона</label>
         <input 
           type="color" 
           :value="selectedElement?.backgroundColor || '#ffffff'"
-          @input="updateProperty('backgroundColor', $event.target.value)"
+          @input="setColorBackground($event.target.value)"
         />
       </div>
+      
       <div class="property-group">
         <label>Цвет границы</label>
         <input 
@@ -345,14 +384,12 @@ function togglePanel() {
   transform-origin: right center;
 }
 
-/* Состояние видимой панели */
 .panel-visible {
   transform: translateX(0);
   opacity: 1;
   visibility: visible;
 }
 
-/* Состояние скрытой панели */
 .panel-hidden {
   transform: translateX(100%);
   opacity: 0;

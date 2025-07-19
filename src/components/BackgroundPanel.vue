@@ -172,6 +172,10 @@ function togglePanel() {
   max-height: 400px;
 }
 
+.background-panel::-webkit-scrollbar {
+    width: 0;
+}
+
 .panel-visible {
   transform: translateX(0);
   opacity: 1;

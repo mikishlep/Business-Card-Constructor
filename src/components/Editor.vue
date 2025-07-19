@@ -46,7 +46,8 @@ function addElement(type = 'default') {
         height: type === 'text' ? 60 : 80,
         side: props.flipped ? 'back' : 'front',
         isSelected: true,
-        backgroundColor: '#ffffff',
+        // Для текстовых элементов по умолчанию прозрачный фон
+        backgroundColor: type === 'text' ? 'transparent' : '#ffffff',
         borderColor: '#000000',
         borderWidth: 0,
         borderRadius: 0,

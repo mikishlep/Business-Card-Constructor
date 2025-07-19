@@ -6,7 +6,7 @@ import BackgroundPanel from './components/BackgroundPanel.vue';
 import { ref, computed } from 'vue';
 
 const isFlipped = ref(false);
-const isPropertiesPanelVisible = ref(true);
+const isPropertiesPanelVisible = ref(false);
 const isBackgroundPanelVisible = ref(true);
 const editorRef = ref(null);
 
