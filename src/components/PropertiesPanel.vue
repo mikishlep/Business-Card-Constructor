@@ -570,14 +570,29 @@ function setColorBackground(color) {
   -webkit-appearance: none;
 }
 
-.property-group input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #007bff;
+.background-type-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.type-button {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
   cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.type-button.active {
+  background: #007bff; 
+}
+
+.type-button:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .property-group input[type="range"]::-moz-range-thumb {
