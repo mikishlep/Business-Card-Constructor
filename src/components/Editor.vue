@@ -30,7 +30,7 @@ function addElement(type = 'default') {
         height: type === 'text' ? 80 : 60,
         side: props.flipped ? 'back' : 'front',
         isSelected: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: 'none',
         borderColor: '#007bff',
         borderWidth: 2,
         borderRadius: 6,

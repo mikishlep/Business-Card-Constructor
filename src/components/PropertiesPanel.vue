@@ -57,8 +57,15 @@ function togglePanel() {
     </svg>
   </button>
 
-  <!-- Панель свойств -->
-  <div class="properties-panel" v-if="isVisible" :class="{ 'has-selection': hasSelection }">
+  <!-- Панель свойств с анимацией -->
+  <div 
+    class="properties-panel" 
+    :class="{ 
+      'has-selection': hasSelection,
+      'panel-visible': isVisible,
+      'panel-hidden': !isVisible
+    }"
+  >
     <div class="panel-header">
       <h3>Свойства элемента</h3>
       <span class="element-type">{{ selectedElement?.type === 'text' ? 'Текст' : 'Элемент' }}</span>
@@ -260,7 +267,7 @@ function togglePanel() {
   
   <!-- Кнопка разворачивания, когда панель скрыта -->
   <button 
-    v-else 
+    v-if="!isVisible" 
     class="expand-button" 
     @click="togglePanel" 
     title="Развернуть панель свойств"
@@ -286,9 +293,24 @@ function togglePanel() {
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   z-index: 10;
-  transition: all 0.3s ease;
   overflow-y: auto;
   color: white;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: right center;
+}
+
+/* Состояние видимой панели */
+.panel-visible {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Состояние скрытой панели */
+.panel-hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  visibility: hidden;
 }
 
 .collapse-button {
@@ -309,9 +331,10 @@ function togglePanel() {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 9999;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapse-button:hover {
@@ -339,9 +362,10 @@ function togglePanel() {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 9999;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .expand-button:hover {
@@ -349,6 +373,29 @@ function togglePanel() {
   color: #aaa;
   transform: translateY(-50%) scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Анимации для кнопок */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 .panel-header {
