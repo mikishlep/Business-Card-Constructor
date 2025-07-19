@@ -8,7 +8,6 @@ const props = defineProps({
   initialY: Number,
   side: String,
   isSelected: Boolean,
-  // Новые свойства
   width: Number,
   height: Number,
   backgroundColor: String,
@@ -21,7 +20,8 @@ const props = defineProps({
   borderRadiusBottomRight: Number,
   opacity: Number,
   hasShadow: Boolean,
-  text: Object
+  text: Object,
+  imageUrl: String // Новое свойство для изображений
 });
 
 const emit = defineEmits(['update:position', 'select']);
@@ -34,13 +34,12 @@ const dragOffset = ref({ x: 0, y: 0 });
 const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
 
-// Инициализируем размеры с учетом пропсов или значений по умолчанию
 const size = ref({ 
   width: props.width || (props.type === 'text' ? 120 : 100), 
   height: props.height || (props.type === 'text' ? 60 : 80) 
 });
 
-// Следим за изменениями пропсов и обновляем локальные значения
+// Следим за изменениями пропсов
 watch(() => props.width, (newWidth) => {
   if (newWidth !== undefined && newWidth !== null) {
     size.value.width = newWidth;
@@ -162,7 +161,7 @@ function onMouseUp() {
     emit('update:position', { 
       id: props.id, 
       position: position.value,
-      size: size.value // Добавляем размеры в обновление
+      size: size.value
     });
   }
   
@@ -172,7 +171,7 @@ function onMouseUp() {
     emit('update:position', { 
       id: props.id, 
       position: position.value,
-      size: size.value // Добавляем размеры в обновление
+      size: size.value
     });
   }
 }
@@ -235,14 +234,12 @@ const contentStyles = computed(() => {
     borderColor: props.borderColor || 'transparent'
   };
 
-  // Применяем border-radius
   if (props.borderRadiusTopLeft || props.borderRadiusTopRight || props.borderRadiusBottomLeft || props.borderRadiusBottomRight) {
     styles.borderRadius = `${props.borderRadiusTopLeft || 0}px ${props.borderRadiusTopRight || 0}px ${props.borderRadiusBottomRight || 0}px ${props.borderRadiusBottomLeft || 0}px`;
   } else {
     styles.borderRadius = (props.borderRadius || 0) + 'px';
   }
 
-  // Добавляем тень только если включена
   if (props.hasShadow) {
     styles.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
   }
@@ -318,7 +315,11 @@ onUnmounted(() => {
       </template>
       <template v-else-if="type === 'image'">
         <div class="image-element">
-          <img src="../assets/icons/add.svg" alt="Изображение" />
+          <img 
+            :src="imageUrl || '../assets/icons/add.svg'" 
+            alt="Изображение"
+            @error="handleImageError"
+          />
         </div>
       </template>
       <template v-else>
@@ -425,6 +426,7 @@ onUnmounted(() => {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  border-radius: inherit;
 }
 
 .default-element {

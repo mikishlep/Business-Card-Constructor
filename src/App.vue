@@ -2,10 +2,12 @@
 import ToolPanel from './components/ToolPanel.vue';
 import Editor from './components/Editor.vue';
 import PropertiesPanel from './components/PropertiesPanel.vue';
+import BackgroundPanel from './components/BackgroundPanel.vue';
 import { ref, computed } from 'vue';
 
 const isFlipped = ref(false);
 const isPropertiesPanelVisible = ref(true);
+const isBackgroundPanelVisible = ref(true);
 const editorRef = ref(null);
 
 // Разворот визитки
@@ -34,15 +36,35 @@ function handleUpdateElement(updateData) {
   }
 }
 
+// Обновление фона
+function handleUpdateBackground(backgroundData) {
+  if (editorRef.value) {
+    editorRef.value.updateBackground(backgroundData);
+  }
+}
+
 // Переключение видимости панели свойств
 function togglePropertiesPanel() {
   isPropertiesPanelVisible.value = !isPropertiesPanelVisible.value;
+}
+
+// Переключение видимости панели фона
+function toggleBackgroundPanel() {
+  isBackgroundPanelVisible.value = !isBackgroundPanelVisible.value;
 }
 
 // Получение выбранного элемента
 const selectedElement = computed(() => {
   if (editorRef.value) {
     return editorRef.value.getSelectedElement();
+  }
+  return null;
+});
+
+// Получение активного фона
+const activeBackground = computed(() => {
+  if (editorRef.value) {
+    return editorRef.value.activeBackground;
   }
   return null;
 });
@@ -60,6 +82,12 @@ const selectedElement = computed(() => {
     :is-visible="isPropertiesPanelVisible"
     @update-element="handleUpdateElement"
     @toggle-visibility="togglePropertiesPanel"
+  />
+  <BackgroundPanel
+    :background="activeBackground"
+    :is-visible="isBackgroundPanelVisible"
+    @update-background="handleUpdateBackground"
+    @toggle-visibility="toggleBackgroundPanel"
   />
 </template>
 

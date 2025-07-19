@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import DraggableItem from './DraggableItem.vue';
 
 const props = defineProps({
     elements: Array,
-    flipped: Boolean
+    flipped: Boolean,
+    background: Object
 });
 
 const emit = defineEmits(['add-element', 'update-position', 'select-element', 'deselect-all']);
@@ -12,7 +13,6 @@ const emit = defineEmits(['add-element', 'update-position', 'select-element', 'd
 // Координаты
 const offset = ref({ x: 0, y: 0 });
 const start = ref({ x: 0, y: 0 });
-// Данный параметр у нас будет отвечать за активность перемещения колесом мыши
 const isPanning = ref(false);
 
 // Тут происходит нажатие колеса мыши
@@ -20,9 +20,8 @@ function onMouseDown(e) {
     if (e.button !== 1) return;
     
     isPanning.value = true;
-    start.value = { x: e.clientX, y: e.clientY }; // Стартовые координаты пользователя
+    start.value = { x: e.clientX, y: e.clientY };
     document.body.style.cursor = 'grabbing';
-
     e.preventDefault();
 }
 
@@ -30,16 +29,13 @@ function onMouseDown(e) {
 function onMouseMove(e) {
     if (!isPanning.value) return;
 
-    // Просчет перемещений
     const dx = e.clientX - start.value.x;
     const dy = e.clientY - start.value.y;
 
     offset.value.x += dx;
     offset.value.y += dy;
 
-    // Обновляем стартовые позиции
     start.value = { x: e.clientX, y: e.clientY };
-
     document.body.style.cursor = 'grab';
 }
 
@@ -53,7 +49,6 @@ function onMouseUp() {
 
 // Обработка клика по канвасу для снятия выбора
 function onCanvasClick(e) {
-    // Если кликнули по канвасу, а не по элементу, снимаем выбор
     if (e.target.classList.contains('canvas-card') || e.target.classList.contains('card-side')) {
         emit('deselect-all');
     }
@@ -63,6 +58,26 @@ function onCanvasClick(e) {
 function onSelectElement(elementId) {
     emit('select-element', elementId);
 }
+
+// Вычисляем стили фона
+const backgroundStyles = computed(() => {
+    if (!props.background) return {};
+    
+    switch (props.background.type) {
+        case 'transparent':
+            return { backgroundColor: 'transparent' };
+        case 'image':
+            return { 
+                backgroundImage: `url(${props.background.value})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+            };
+        case 'color':
+        default:
+            return { backgroundColor: props.background.value || '#ffffff' };
+    }
+});
 </script>
 
 <template>
@@ -73,16 +88,12 @@ function onSelectElement(elementId) {
         @mouseleave="onMouseUp"
         @click="onCanvasClick">
         
-        <!-- Добавляем новый контейнер для трансформаций -->
         <div class="transform-container" :style="{
             transform: `translate(${offset.x}px, ${offset.y}px)`,
             transition: isPanning ? 'none' : 'transform 0.6s ease'
         }">
-            <!-- Основной контейнер карточки -->
             <div class="canvas-card" :class="{ flipped: props.flipped }">
-                <div class="card-side front">
-                    <!--<p>Передняя сторона визитки</p>-->
-                    <!-- Перетаскиваемые элементы для передней стороны -->
+                <div class="card-side front" :style="backgroundStyles">
                     <DraggableItem
                         v-for="element in props.flipped ? [] : (props.elements || [])"
                         :key="element.id"
@@ -105,13 +116,12 @@ function onSelectElement(elementId) {
                         :opacity="element.opacity"
                         :has-shadow="element.hasShadow"
                         :text="element.text"
+                        :image-url="element.imageUrl"
                         @update:position="(data) => emit('update-position', data)"
                         @select="onSelectElement"
                     />
                 </div>
-                <div class="card-side back">
-                    <!--<p>Обратная сторона визитки</p>-->
-                    <!-- Перетаскиваемые элементы для обратной стороны -->
+                <div class="card-side back" :style="backgroundStyles">
                     <DraggableItem
                         v-for="element in props.flipped ? (props.elements || []) : []"
                         :key="element.id"
@@ -134,6 +144,7 @@ function onSelectElement(elementId) {
                         :opacity="element.opacity"
                         :has-shadow="element.hasShadow"
                         :text="element.text"
+                        :image-url="element.imageUrl"
                         @update:position="(data) => emit('update-position', data)"
                         @select="onSelectElement"
                     />
@@ -159,15 +170,14 @@ function onSelectElement(elementId) {
     align-items: center;
     height: 100%;
     width: 100%;
-    perspective: 1000px; /* Добавляем перспективу для 3D-эффекта */
+    perspective: 1000px;
 }
 
-/* Остальные стили с исправлениями */
 .canvas-card {
     width: 525px;
     height: 300px;
     position: relative;
-    transform-style: preserve-3d; /* Важно для 3D-трансформаций */
+    transform-style: preserve-3d;
     transition: transform 0.6s ease;
     cursor: default;
 }
@@ -182,7 +192,7 @@ function onSelectElement(elementId) {
     left: 0;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden; /* Скрываем обратную сторону */
+    backface-visibility: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -190,21 +200,17 @@ function onSelectElement(elementId) {
     box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     padding: 16px;
     box-sizing: border-box;
-    /* Добавляем transform-style для сохранения размеров элементов */
     transform-style: preserve-3d;
 }
 
 .front {
-    background-color: #fff;
-    transform: rotateY(0deg); /* Явно указываем поворот */
+    transform: rotateY(0deg);
 }
 
 .back {
-    background-color: #f0f0f0;
-    transform: rotateY(180deg); /* Изначально перевернута */
+    transform: rotateY(180deg);
 }
 
-/* Добавляем стили для сохранения размеров элементов при повороте */
 .card-side * {
     transform-style: preserve-3d;
 }

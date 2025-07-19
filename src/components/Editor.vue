@@ -8,9 +8,25 @@ const props = defineProps({ flipped: Boolean });
 const frontElements = ref([]);
 const backElements = ref([]);
 
+// Фоны для сторон визитки
+const frontBackground = ref({
+    type: 'color', // 'color', 'image', 'transparent'
+    value: '#ffffff'
+});
+
+const backBackground = ref({
+    type: 'color',
+    value: '#f0f0f0'
+});
+
 // Получение стороны визитки
 const activeElements = computed(() => {
     return props.flipped ? backElements.value : frontElements.value;
+});
+
+// Получение активного фона
+const activeBackground = computed(() => {
+    return props.flipped ? backBackground.value : frontBackground.value;
 });
 
 // Получение выбранного элемента
@@ -49,7 +65,8 @@ function addElement(type = 'default') {
             bold: false,
             italic: false,
             underline: false
-        } : null
+        } : null,
+        imageUrl: type === 'image' ? null : null
     };
     
     // Снимаем выбор со всех других элементов
@@ -70,7 +87,6 @@ function updateElementPosition({ id, position, size }) {
     if (element) {
         element.x = position.x;
         element.y = position.y;
-        // Добавляем обновление размеров
         if (size) {
             element.width = size.width;
             element.height = size.height;
@@ -90,6 +106,15 @@ function updateElement({ id, property, value }) {
         } else {
             element[property] = value;
         }
+    }
+}
+
+// Обновление фона
+function updateBackground(backgroundData) {
+    if (props.flipped) {
+        backBackground.value = { ...backBackground.value, ...backgroundData };
+    } else {
+        frontBackground.value = { ...frontBackground.value, ...backgroundData };
     }
 }
 
@@ -113,7 +138,6 @@ function deleteSelected() {
     const selectedElements = elements.filter(el => el.isSelected);
     
     if (selectedElements.length > 0) {
-        // Удаляем выбранные элементы
         if (props.flipped) {
             backElements.value = backElements.value.filter(el => !el.isSelected);
         } else {
@@ -127,10 +151,12 @@ defineExpose({
     addElement,
     updateElementPosition,
     updateElement,
+    updateBackground,
     selectElement,
     deselectAll,
     deleteSelected,
-    getSelectedElement
+    getSelectedElement,
+    activeBackground
 });
 </script>
 
@@ -139,6 +165,7 @@ defineExpose({
         <Canvas 
             :flipped="flipped" 
             :elements="activeElements"
+            :background="activeBackground"
             @add-element="addElement"
             @update-position="updateElementPosition"
             @select-element="selectElement"
@@ -148,5 +175,9 @@ defineExpose({
 </template>
 
 <style scoped>
-
+.editor {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+}
 </style>
