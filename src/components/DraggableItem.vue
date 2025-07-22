@@ -450,8 +450,8 @@ onUnmounted(() => {
 
 .resize-handle {
   position: absolute;
-  bottom: -6px;
-  right: -6px;
+  bottom: -12px;
+  right: -12px;
   width: 12px;
   height: 12px;
   background: #007bff;
