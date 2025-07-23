@@ -111,47 +111,71 @@ async function downloadCard({ format, side }) {
         ctx.drawImage(img, x, y, cardWidth, cardHeight);
       }
       
-      // Рисуем элементы
+      // Рисуем элементы, которые находятся на визитке
       for (const element of elements) {
         // Пропускаем элементы другой стороны
         if ((isBack && element.side === 'front') || (!isBack && element.side === 'back')) {
           continue;
         }
         
-        // Рисуем фон элемента
-        if (element.backgroundColor && element.backgroundColor !== 'transparent') {
-          ctx.fillStyle = element.backgroundColor;
-          ctx.fillRect(x + element.x, y + element.y, element.width, element.height);
+        // Проверяем, находится ли элемент на визитке (хотя бы частично)
+        const elementRight = element.x + element.width;
+        const elementBottom = element.y + element.height;
+        
+        // Если элемент полностью за пределами визитки, пропускаем его
+        if (element.x >= cardWidth || element.y >= cardHeight || elementRight <= 0 || elementBottom <= 0) {
+          continue;
         }
         
-        // Рисуем границу элемента
+        // Вычисляем видимую область элемента
+        const visibleX = Math.max(0, element.x);
+        const visibleY = Math.max(0, element.y);
+        const visibleWidth = Math.min(element.width, cardWidth - visibleX);
+        const visibleHeight = Math.min(element.height, cardHeight - visibleY);
+        
+        // Рисуем фон элемента (только видимую часть)
+        if (element.backgroundColor && element.backgroundColor !== 'transparent') {
+          ctx.fillStyle = element.backgroundColor;
+          ctx.fillRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
+        }
+        
+        // Рисуем границу элемента (только видимую часть)
         if (element.borderWidth > 0) {
           ctx.strokeStyle = element.borderColor;
           ctx.lineWidth = element.borderWidth;
-          ctx.strokeRect(x + element.x, y + element.y, element.width, element.height);
+          ctx.strokeRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
         }
         
-        // Рисуем текст
-        if (element.type === 'text' && element.text) {
+        // Рисуем текст (только если он видим)
+        if (element.type === 'text' && element.text && visibleWidth > 0 && visibleHeight > 0) {
           ctx.fillStyle = element.text.color || '#000000';
           ctx.font = `${element.text.fontSize || 14}px ${element.text.fontFamily || 'Arial'}`;
           ctx.textAlign = element.text.textAlign || 'center';
           
-          const textX = x + element.x + element.width / 2;
-          const textY = y + element.y + element.height / 2 + 5;
+          const textX = x + visibleX + visibleWidth / 2;
+          const textY = y + visibleY + visibleHeight / 2 + 5;
           
           ctx.fillText(element.text.content || 'Текст', textX, textY);
         }
         
-        // Рисуем изображение
-        if (element.type === 'image' && element.imageUrl) {
+        // Рисуем изображение (только видимую часть)
+        if (element.type === 'image' && element.imageUrl && visibleWidth > 0 && visibleHeight > 0) {
           const img = new Image();
           await new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = reject;
             img.src = element.imageUrl;
           });
-          ctx.drawImage(img, x + element.x, y + element.y, element.width, element.height);
+          
+          // Вычисляем смещение для обрезанного изображения
+          const offsetX = Math.max(0, -element.x);
+          const offsetY = Math.max(0, -element.y);
+          
+          ctx.drawImage(
+            img, 
+            offsetX, offsetY, visibleWidth, visibleHeight, // источник
+            x + visibleX, y + visibleY, visibleWidth, visibleHeight // назначение
+          );
         }
       }
     }

@@ -31,7 +31,8 @@ const isDragging = ref(false);
 const isEditing = ref(false);
 const isResizing = ref(false);
 const dragOffset = ref({ x: 0, y: 0 });
-const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0 });
+const resizeStart = ref({ x: 0, y: 0, width: 0, height: 0, startX: 0, startY: 0 });
+const resizeCorner = ref(''); // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
 const position = ref({ x: props.initialX || 0, y: props.initialY || 0 });
 
 const size = ref({ 
@@ -71,7 +72,8 @@ function onMouseDown(e) {
   if (props.type === 'text' && isEditing.value) return;
   
   if (e.target.classList.contains('resize-handle')) {
-    startResize(e);
+    const corner = e.target.dataset.corner;
+    startResize(e, corner);
     return;
   }
   
@@ -92,18 +94,32 @@ function onMouseDown(e) {
 }
 
 // Начало изменения размера
-function startResize(e) {
+function startResize(e, corner) {
+  console.log('startResize called with corner:', corner);
   isResizing.value = true;
+  resizeCorner.value = corner;
   
   const rect = elementRef.value.getBoundingClientRect();
   resizeStart.value = {
     x: e.clientX,
     y: e.clientY,
     width: size.value.width,
-    height: size.value.height
+    height: size.value.height,
+    startX: position.value.x,
+    startY: position.value.y
   };
   
-  document.body.style.cursor = 'nw-resize';
+  console.log('Resize start values:', resizeStart.value);
+  
+  // Устанавливаем курсор в зависимости от угла
+  const cursors = {
+    'top-left': 'nw-resize',
+    'top-right': 'ne-resize',
+    'bottom-left': 'sw-resize',
+    'bottom-right': 'se-resize'
+  };
+  document.body.style.cursor = cursors[corner] || 'nw-resize';
+  
   e.preventDefault();
   e.stopPropagation();
 }
@@ -118,12 +134,10 @@ function onMouseMove(e) {
     const newX = e.clientX - cardRect.left - dragOffset.value.x;
     const newY = e.clientY - cardRect.top - dragOffset.value.y;
     
-    const maxX = cardRect.width - size.value.width;
-    const maxY = cardRect.height - size.value.height;
-    
+    // Убираем ограничения - элементы можно перетаскивать за пределы визитки
     position.value = {
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
+      x: newX,
+      y: newY
     };
   }
   
@@ -134,22 +148,38 @@ function onMouseMove(e) {
     const minWidth = props.type === 'text' ? 80 : 50;
     const minHeight = props.type === 'text' ? 40 : 30;
     
-    const newWidth = Math.max(minWidth, resizeStart.value.width + deltaX);
-    const newHeight = Math.max(minHeight, resizeStart.value.height + deltaY);
+    let newWidth = resizeStart.value.width;
+    let newHeight = resizeStart.value.height;
+    let newX = resizeStart.value.startX;
+    let newY = resizeStart.value.startY;
     
-    const cardContainer = elementRef.value.closest('.card-side');
-    if (cardContainer) {
-      const cardRect = cardContainer.getBoundingClientRect();
-      const maxWidth = cardRect.width - position.value.x;
-      const maxHeight = cardRect.height - position.value.y;
-      
-      size.value = {
-        width: Math.min(newWidth, maxWidth),
-        height: Math.min(newHeight, maxHeight)
-      };
-    } else {
-      size.value = { width: newWidth, height: newHeight };
+    // Изменяем размер в зависимости от угла
+    switch (resizeCorner.value) {
+      case 'top-left':
+        newWidth = Math.max(minWidth, resizeStart.value.width - deltaX);
+        newHeight = Math.max(minHeight, resizeStart.value.height - deltaY);
+        newX = resizeStart.value.startX + (resizeStart.value.width - newWidth);
+        newY = resizeStart.value.startY + (resizeStart.value.height - newHeight);
+        break;
+      case 'top-right':
+        newWidth = Math.max(minWidth, resizeStart.value.width + deltaX);
+        newHeight = Math.max(minHeight, resizeStart.value.height - deltaY);
+        newY = resizeStart.value.startY + (resizeStart.value.height - newHeight);
+        break;
+      case 'bottom-left':
+        newWidth = Math.max(minWidth, resizeStart.value.width - deltaX);
+        newHeight = Math.max(minHeight, resizeStart.value.height + deltaY);
+        newX = resizeStart.value.startX + (resizeStart.value.width - newWidth);
+        break;
+      case 'bottom-right':
+        newWidth = Math.max(minWidth, resizeStart.value.width + deltaX);
+        newHeight = Math.max(minHeight, resizeStart.value.height + deltaY);
+        break;
     }
+    
+    // Убираем ограничения границами карточки при изменении размера
+    size.value = { width: newWidth, height: newHeight };
+    position.value = { x: newX, y: newY };
   }
 }
 
@@ -167,6 +197,7 @@ function onMouseUp() {
   
   if (isResizing.value) {
     isResizing.value = false;
+    resizeCorner.value = '';
     document.body.style.cursor = 'default';
     emit('update:position', { 
       id: props.id, 
@@ -335,11 +366,30 @@ onUnmounted(() => {
       </template>
     </div>
     
-    <!-- Элемент изменения размера -->
+    <!-- Resize handles во всех 4 углах -->
     <div 
       v-if="isSelected"
-      class="resize-handle"
-      @mousedown="startResize"
+      class="resize-handle top-left"
+      data-corner="top-left"
+      @mousedown="(e) => startResize(e, 'top-left')"
+    ></div>
+    <div 
+      v-if="isSelected"
+      class="resize-handle top-right"
+      data-corner="top-right"
+      @mousedown="(e) => startResize(e, 'top-right')"
+    ></div>
+    <div 
+      v-if="isSelected"
+      class="resize-handle bottom-left"
+      data-corner="bottom-left"
+      @mousedown="(e) => startResize(e, 'bottom-left')"
+    ></div>
+    <div 
+      v-if="isSelected"
+      class="resize-handle bottom-right"
+      data-corner="bottom-right"
+      @mousedown="(e) => startResize(e, 'bottom-right')"
     ></div>
 
     <!-- Индикатор выделения -->
@@ -448,16 +498,14 @@ onUnmounted(() => {
   color: #666;
 }
 
+/* Resize handles во всех 4 углах */
 .resize-handle {
   position: absolute;
-  bottom: -12px;
-  right: -12px;
   width: 12px;
   height: 12px;
   background: #007bff;
   border: 2px solid white;
   border-radius: 50%;
-  cursor: nw-resize;
   z-index: 20;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease;
@@ -466,6 +514,30 @@ onUnmounted(() => {
 .resize-handle:hover {
   transform: scale(1.2);
   background: #0056b3;
+}
+
+.resize-handle.top-left {
+  top: -12px;
+  left: -12px;
+  cursor: nwse-resize;
+}
+
+.resize-handle.top-right {
+  top: -12px;
+  right: -12px;
+  cursor: nesw-resize;
+}
+
+.resize-handle.bottom-left {
+  bottom: -12px;
+  left: -12px;
+  cursor: nesw-resize;
+}
+
+.resize-handle.bottom-right {
+  bottom: -12px;
+  right: -12px;
+  cursor: nwse-resize;
 }
 
 .selection-indicator {
