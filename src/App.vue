@@ -31,6 +31,24 @@ function handleDeleteSelected() {
   }
 }
 
+// Сброс выделения
+function handleGlobalClick(e) {
+  // Проверяем, что клик был по рабочей области, а не по панелям/кнопкам
+  if (e.target.closest('.toolPanel-wrapper') || 
+      e.target.closest('.properties-panel') || 
+      e.target.closest('.background-panel') ||
+      e.target.closest('.save-modal') ||
+      e.target.closest('.expand-button') ||
+      e.target.closest('.draggable-element')) {
+    return; // Не снимаем выделение
+  }
+  
+  // Снимаем выделение
+  if (editorRef.value) {
+    editorRef.value.deselectAll();
+  }
+}
+
 // Обновление свойств элемента
 function handleUpdateElement(updateData) {
   if (editorRef.value) {
@@ -244,32 +262,34 @@ const activeBackground = computed(() => {
 </script>
 
 <template>
-  <ToolPanel 
-    @revert="handleRevert" 
-    @add-element="handleAddElement"
-    @delete-selected="handleDeleteSelected"
-    @toggle-properties-panel="togglePropertiesPanel"
-    @toggle-background-panel="toggleBackgroundPanel"
-    @open-save-modal="openSaveModal"
-  />
-  <Editor ref="editorRef" :flipped="isFlipped" />
-  <PropertiesPanel 
-    :selected-element="selectedElement"
-    :is-visible="isPropertiesPanelVisible"
-    @update-element="handleUpdateElement"
-    @toggle-visibility="togglePropertiesPanel"
-  />
-  <BackgroundPanel
-    :background="activeBackground"
-    :is-visible="isBackgroundPanelVisible"
-    @update-background="handleUpdateBackground"
-    @toggle-visibility="toggleBackgroundPanel"
-  />
-  <SaveModal
-    :is-visible="isSaveModalVisible"
-    @close="closeSaveModal"
-    @download="downloadCard"
-  />
+  <div @click="handleGlobalClick">
+    <ToolPanel 
+      @revert="handleRevert" 
+      @add-element="handleAddElement"
+      @delete-selected="handleDeleteSelected"
+      @toggle-properties-panel="togglePropertiesPanel"
+      @toggle-background-panel="toggleBackgroundPanel"
+      @open-save-modal="openSaveModal"
+    />
+    <Editor ref="editorRef" :flipped="isFlipped" />
+    <PropertiesPanel 
+      :selected-element="selectedElement"
+      :is-visible="isPropertiesPanelVisible"
+      @update-element="handleUpdateElement"
+      @toggle-visibility="togglePropertiesPanel"
+    />
+    <BackgroundPanel
+      :background="activeBackground"
+      :is-visible="isBackgroundPanelVisible"
+      @update-background="handleUpdateBackground"
+      @toggle-visibility="toggleBackgroundPanel"
+    />
+    <SaveModal
+      :is-visible="isSaveModalVisible"
+      @close="closeSaveModal"
+      @download="downloadCard"
+    />
+  </div>
 </template>
 
 <style scoped>

@@ -39,9 +39,6 @@ function handleSave() {
             <button id="add-tool" class="toolPanel-buttons" @click="handleAddElement">
                 <img src="../assets/icons/add.svg" alt="Добавить компонент">
             </button>
-            <button id="move-tool" class="toolPanel-buttons">
-                <img src="../assets/icons/move.svg" alt="Передвинуть">
-            </button>
             <button id="save-tool" class="toolPanel-buttons" @click="handleSave">
                 <img src="../assets/icons/save.svg" alt="Сохранить визитку">
             </button>
@@ -57,9 +54,6 @@ function handleSave() {
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <path d="M21 15l-5-5L5 21"></path>
                 </svg>
-            </button>
-            <button id="look-tool" class="toolPanel-buttons">
-                <img src="../assets/icons/eye.svg" alt="Осмотреть визитку">
             </button>
         </div>
     </div>

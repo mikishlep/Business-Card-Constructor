@@ -248,7 +248,7 @@ const elementStyles = computed(() => {
     top: position.value.y + 'px',
     width: size.value.width + 'px',
     height: size.value.height + 'px',
-    transform: isDragging.value || isResizing.value ? 'scale(1.02)' : 'scale(1)',
+    //transform: isDragging.value || isResizing.value ? 'scale(1.02)' : 'scale(1)',
     transition: (isDragging.value || isResizing.value) ? 'none' : 'transform 0.1s ease',
     opacity: props.opacity || 1
   };
@@ -542,10 +542,10 @@ onUnmounted(() => {
 
 .selection-indicator {
   position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   z-index: 5;
 }
