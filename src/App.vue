@@ -127,6 +127,9 @@ async function downloadAsPDF({ side }) {
     // Используем jsPDF для создания PDF
     const { jsPDF } = await import('jspdf');
     
+    // Импортируем Base64-строку шрифта
+    const arialBase64 = await import('./fonts/arialmt-normal.js');
+    
     // Размеры в мм (соответствуют размерам визитки 1063x591 пикселей при 300 DPI)
     const cardWidth = 90; // мм
     const cardHeight = 50; // мм
@@ -136,6 +139,11 @@ async function downloadAsPDF({ side }) {
       unit: 'mm',
       format: [cardWidth, cardHeight]
     });
+    
+    // Добавляем шрифт в PDF
+    doc.addFileToVFS('arial.ttf', arialBase64.default);
+    doc.addFont('arial.ttf', 'Arial', 'normal');
+    doc.setFont('Arial');
     
     // Получаем данные о визитке
     const frontElements = editorRef.value.frontElements || [];
