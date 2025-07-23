@@ -56,6 +56,19 @@ function handleSendBackward() {
   }
 }
 
+// Функции управления границами
+function handleToggleBorders() {
+  if (editorRef.value) {
+    editorRef.value.toggleBorders();
+  }
+}
+
+function handleSwitchBorderMode(mode) {
+  if (editorRef.value) {
+    editorRef.value.switchBorderMode(mode);
+  }
+}
+
 // Сброс выделения
 function handleGlobalClick(e) {
   // Проверяем, что клик был по рабочей области, а не по панелям/кнопкам
@@ -108,9 +121,127 @@ function closeSaveModal() {
   isSaveModalVisible.value = false;
 }
 
-// Скачивание визитки
+// Функция для создания PDF
+async function downloadAsPDF({ side }) {
+  try {
+    // Используем jsPDF для создания PDF
+    const { jsPDF } = await import('jspdf');
+    
+    // Размеры в мм
+    const cardWidth = 90; // мм
+    const cardHeight = 50; // мм
+    
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: [cardWidth, cardHeight]
+    });
+    
+    // Получаем данные о визитке
+    const frontElements = editorRef.value.frontElements || [];
+    const backElements = editorRef.value.backElements || [];
+    const frontBackground = editorRef.value.frontBackground || { type: 'color', value: '#ffffff' };
+    const backBackground = editorRef.value.backBackground || { type: 'color', value: '#f0f0f0' };
+    
+    // Функция для отрисовки стороны визитки в PDF
+    async function drawCardSidePDF(elements, background, isBack = false) {
+      // Рисуем фон
+      if (background.type === 'color') {
+        doc.setFillColor(background.value || '#ffffff');
+        doc.rect(0, 0, cardWidth, cardHeight, 'F');
+      }
+      
+      // Сортируем элементы по z-index
+      const sortedElements = [...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+      
+      // Рисуем элементы
+      for (const element of sortedElements) {
+        // Пропускаем элементы другой стороны
+        if ((isBack && element.side === 'front') || (!isBack && element.side === 'back')) {
+          continue;
+        }
+        
+        // Конвертируем координаты из пикселей в мм
+        const mmToPx = 525 / 90; // 525px = 90mm
+        const x = element.x / mmToPx;
+        const y = element.y / mmToPx;
+        const width = element.width / mmToPx;
+        const height = element.height / mmToPx;
+        
+        // Рисуем фон элемента
+        if (element.backgroundColor && element.backgroundColor !== 'transparent') {
+          doc.setFillColor(element.backgroundColor);
+          doc.rect(x, y, width, height, 'F');
+        }
+        
+        // Рисуем границу элемента
+        if (element.borderWidth > 0) {
+          doc.setDrawColor(element.borderColor);
+          doc.setLineWidth(element.borderWidth / mmToPx);
+          doc.rect(x, y, width, height, 'S');
+        }
+        
+        // Рисуем текст
+        if (element.type === 'text' && element.text) {
+          doc.setTextColor(element.text.color || '#000000');
+          doc.setFontSize(element.text.fontSize || 14);
+          doc.setFont(element.text.fontFamily || 'Arial');
+          
+          const textX = x + width / 2;
+          const textY = y + height / 2;
+          
+          doc.text(element.text.content || 'Текст', textX, textY, { align: 'center', baseline: 'middle' });
+        }
+        
+        // Рисуем изображение
+        if (element.type === 'image' && element.imageUrl) {
+          try {
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = element.imageUrl;
+            });
+            
+            doc.addImage(img, 'JPEG', x, y, width, height);
+          } catch (error) {
+            console.error('Ошибка при добавлении изображения в PDF:', error);
+          }
+        }
+      }
+    }
+    
+    // Рисуем выбранные стороны
+    if (side === 'front' || side === 'both') {
+      await drawCardSidePDF(frontElements, frontBackground, false);
+    }
+    
+    if (side === 'back' || side === 'both') {
+      if (side === 'both') {
+        doc.addPage();
+      }
+      await drawCardSidePDF(backElements, backBackground, true);
+    }
+    
+    // Сохраняем PDF
+    doc.save(`business-card-${side}.pdf`);
+    
+  } catch (error) {
+    console.error('Ошибка при создании PDF:', error);
+    alert('Произошла ошибка при создании PDF. Убедитесь, что установлен пакет jspdf.');
+  }
+}
+
+// Обновленная функция скачивания
 async function downloadCard({ format, side }) {
   if (!editorRef.value) return;
+
+  // Для PDF используем специальную функцию
+  if (format === 'pdf') {
+    await downloadAsPDF({ side });
+    closeSaveModal();
+    return;
+  }
 
   try {
     const canvas = document.createElement('canvas');
@@ -378,6 +509,8 @@ const activeBackground = computed(() => {
     @send-to-back="handleSendToBack"
     @bring-forward="handleBringForward"
     @send-backward="handleSendBackward"
+    @toggle-borders="handleToggleBorders"
+    @switch-border-mode="handleSwitchBorderMode"
   />
     <Editor ref="editorRef" :flipped="isFlipped" />
     <PropertiesPanel 
