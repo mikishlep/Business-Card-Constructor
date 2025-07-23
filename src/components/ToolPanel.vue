@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal', 'bring-to-front', 'send-to-back', 'bring-forward', 'send-backward']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
@@ -30,6 +30,23 @@ function handleAddImage() {
 function handleSave() {
     emit('open-save-modal');
 }
+
+// Функции управления слоями
+function handleBringToFront() {
+    emit('bring-to-front');
+}
+
+function handleSendToBack() {
+    emit('send-to-back');
+}
+
+function handleBringForward() {
+    emit('bring-forward');
+}
+
+function handleSendBackward() {
+    emit('send-backward');
+}
 </script>
 
 <template>
@@ -57,6 +74,41 @@ function handleSave() {
             </button>
         </div>
     </div>
+    
+    <!-- Панель управления слоями -->
+    <div class="layers-panel">
+        <div class="layers-buttons">
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="handleBringToFront"
+                title="На передний план"
+            >
+                <img src="../assets/icons/top.svg" alt="Верхний слой">
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="handleBringForward"
+                title="Поднять на один слой"
+            >
+                <img src="../assets/icons/up.svg" alt="На слой вверх">
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="handleSendBackward"
+                title="Опустить на один слой"
+            >
+                <img src="../assets/icons/down.svg" alt="На слой вниз">
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="handleSendToBack"
+                title="На задний план"
+            >
+                <img src="../assets/icons/bottom.svg" alt="Нижний слой">
+            </button>
+        </div>
+    </div>
+    
     <div class="turn-panel">
         <button 
             id="revert-tool" 
@@ -119,6 +171,24 @@ function handleSave() {
     width: 18px;
     height: 18px;
     object-fit: contain;
+}
+
+/* Панель слоёв */
+.layers-panel {
+    padding: 16px;
+    border-radius: 14px;
+    background: #2c2c2c;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.layers-buttons {
+    display: grid;
+    gap: 25px;
 }
 
 .turn-panel {

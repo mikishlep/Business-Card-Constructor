@@ -10,6 +10,7 @@ const props = defineProps({
   isSelected: Boolean,
   width: Number,
   height: Number,
+  zIndex: Number,
   backgroundColor: String,
   borderColor: String,
   borderWidth: Number,
@@ -248,6 +249,7 @@ const elementStyles = computed(() => {
     top: position.value.y + 'px',
     width: size.value.width + 'px',
     height: size.value.height + 'px',
+    zIndex: props.zIndex || 0,
     //transform: isDragging.value || isResizing.value ? 'scale(1.02)' : 'scale(1)',
     transition: (isDragging.value || isResizing.value) ? 'none' : 'transform 0.1s ease',
     opacity: props.opacity || 1
@@ -474,14 +476,16 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
+  /*align-items: center;*/
   justify-content: center;
 }
 
 .image-element img {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   border-radius: inherit;
 }
 

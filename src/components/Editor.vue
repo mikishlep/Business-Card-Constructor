@@ -8,6 +8,26 @@ const props = defineProps({ flipped: Boolean });
 const frontElements = ref([]);
 const backElements = ref([]);
 
+// Инициализация zIndex для существующих элементов
+function initializeZIndex() {
+  // Для front элементов
+  frontElements.value.forEach((element, index) => {
+    if (element.zIndex === undefined) {
+      element.zIndex = index;
+    }
+  });
+  
+  // Для back элементов
+  backElements.value.forEach((element, index) => {
+    if (element.zIndex === undefined) {
+      element.zIndex = index;
+    }
+  });
+}
+
+// Вызываем инициализацию при создании компонента
+initializeZIndex();
+
 // Фоны для сторон визитки
 const frontBackground = ref({
     type: 'color', // 'color', 'image', 'transparent'
@@ -37,6 +57,11 @@ function getSelectedElement() {
 
 // Добавление нового элемента
 function addElement(type = 'default') {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    
+    // Определяем максимальный z-index для нового элемента
+    const maxZIndex = elements.length > 0 ? Math.max(...elements.map(el => el.zIndex || 0)) : 0;
+    
     const newElement = {
         id: `element-${Date.now()}`,
         type: type,
@@ -46,8 +71,9 @@ function addElement(type = 'default') {
         height: type === 'text' ? 60 : 80,
         side: props.flipped ? 'back' : 'front',
         isSelected: true,
+        zIndex: maxZIndex + 1, // Новый элемент всегда сверху
         // Для текстовых элементов по умолчанию прозрачный фон
-        backgroundColor: type === 'text' ? 'transparent' : '#D9D9D9',
+        backgroundColor: type === 'text' || type === 'image' ? 'transparent' : '#D9D9D9',
         borderColor: '#000000',
         borderWidth: 0,
         borderRadius: 0,
@@ -95,7 +121,6 @@ function addElement(type = 'default') {
     }
     
     // Снимаем выбор со всех других элементов
-    const elements = props.flipped ? backElements.value : frontElements.value;
     elements.forEach(el => el.isSelected = false);
     
     if (props.flipped) {
@@ -171,6 +196,63 @@ function deleteSelected() {
     }
 }
 
+// Функции управления слоями
+function bringToFront() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const selectedElement = elements.find(el => el.isSelected);
+    
+    if (selectedElement) {
+        const maxZIndex = Math.max(...elements.map(el => el.zIndex || 0));
+        selectedElement.zIndex = maxZIndex + 1;
+    }
+}
+
+function sendToBack() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const selectedElement = elements.find(el => el.isSelected);
+    
+    if (selectedElement) {
+        const minZIndex = Math.min(...elements.map(el => el.zIndex || 0));
+        selectedElement.zIndex = minZIndex - 1;
+    }
+}
+
+function bringForward() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const selectedElement = elements.find(el => el.isSelected);
+    
+    if (selectedElement) {
+        const currentZIndex = selectedElement.zIndex || 0;
+        const nextElement = elements
+            .filter(el => el.id !== selectedElement.id)
+            .filter(el => (el.zIndex || 0) > currentZIndex)
+            .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))[0];
+        
+        if (nextElement) {
+            selectedElement.zIndex = nextElement.zIndex;
+            nextElement.zIndex = currentZIndex;
+        }
+    }
+}
+
+function sendBackward() {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const selectedElement = elements.find(el => el.isSelected);
+    
+    if (selectedElement) {
+        const currentZIndex = selectedElement.zIndex || 0;
+        const prevElement = elements
+            .filter(el => el.id !== selectedElement.id)
+            .filter(el => (el.zIndex || 0) < currentZIndex)
+            .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))[0];
+        
+        if (prevElement) {
+            selectedElement.zIndex = prevElement.zIndex;
+            prevElement.zIndex = currentZIndex;
+        }
+    }
+}
+
 // Экспортируем функции для использования в родительском компоненте
 defineExpose({
     addElement,
@@ -185,7 +267,12 @@ defineExpose({
     frontElements,
     backElements,
     frontBackground,
-    backBackground
+    backBackground,
+    // Новые функции для слоёв
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward
 });
 </script>
 

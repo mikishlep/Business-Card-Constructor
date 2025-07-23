@@ -31,6 +31,31 @@ function handleDeleteSelected() {
   }
 }
 
+// Функции управления слоями
+function handleBringToFront() {
+  if (editorRef.value) {
+    editorRef.value.bringToFront();
+  }
+}
+
+function handleSendToBack() {
+  if (editorRef.value) {
+    editorRef.value.sendToBack();
+  }
+}
+
+function handleBringForward() {
+  if (editorRef.value) {
+    editorRef.value.bringForward();
+  }
+}
+
+function handleSendBackward() {
+  if (editorRef.value) {
+    editorRef.value.sendBackward();
+  }
+}
+
 // Сброс выделения
 function handleGlobalClick(e) {
   // Проверяем, что клик был по рабочей области, а не по панелям/кнопкам
@@ -129,8 +154,11 @@ async function downloadCard({ format, side }) {
         ctx.drawImage(img, x, y, cardWidth, cardHeight);
       }
       
-      // Рисуем элементы, которые находятся на визитке
-      for (const element of elements) {
+      // Сортируем элементы по z-index для правильного порядка слоёв
+      const sortedElements = [...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+      
+      // Рисуем элементы в правильном порядке слоёв
+      for (const element of sortedElements) {
         // Пропускаем элементы другой стороны
         if ((isBack && element.side === 'front') || (!isBack && element.side === 'back')) {
           continue;
@@ -154,14 +182,66 @@ async function downloadCard({ format, side }) {
         // Рисуем фон элемента (только видимую часть)
         if (element.backgroundColor && element.backgroundColor !== 'transparent') {
           ctx.fillStyle = element.backgroundColor;
-          ctx.fillRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
+          
+          // Применяем закругления
+          if (element.borderRadius > 0 || element.borderRadiusTopLeft > 0) {
+            ctx.save();
+            ctx.beginPath();
+            
+            // Определяем радиусы для каждого угла
+            const topLeft = element.borderRadiusTopLeft || element.borderRadius || 0;
+            const topRight = element.borderRadiusTopRight || element.borderRadius || 0;
+            const bottomRight = element.borderRadiusBottomRight || element.borderRadius || 0;
+            const bottomLeft = element.borderRadiusBottomLeft || element.borderRadius || 0;
+            
+            // Рисуем закругленный прямоугольник
+            ctx.moveTo(x + visibleX + topLeft, y + visibleY);
+            ctx.lineTo(x + visibleX + visibleWidth - topRight, y + visibleY);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY, x + visibleX + visibleWidth, y + visibleY + topRight);
+            ctx.lineTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight - bottomRight);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight, x + visibleX + visibleWidth - bottomRight, y + visibleY + visibleHeight);
+            ctx.lineTo(x + visibleX + bottomLeft, y + visibleY + visibleHeight);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY + visibleHeight, x + visibleX, y + visibleY + visibleHeight - bottomLeft);
+            ctx.lineTo(x + visibleX, y + visibleY + topLeft);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY, x + visibleX + topLeft, y + visibleY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          } else {
+            ctx.fillRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
+          }
         }
         
         // Рисуем границу элемента (только видимую часть)
         if (element.borderWidth > 0) {
           ctx.strokeStyle = element.borderColor;
           ctx.lineWidth = element.borderWidth;
-          ctx.strokeRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
+          
+          // Применяем закругления для границы
+          if (element.borderRadius > 0 || element.borderRadiusTopLeft > 0) {
+            ctx.save();
+            ctx.beginPath();
+            
+            const topLeft = element.borderRadiusTopLeft || element.borderRadius || 0;
+            const topRight = element.borderRadiusTopRight || element.borderRadius || 0;
+            const bottomRight = element.borderRadiusBottomRight || element.borderRadius || 0;
+            const bottomLeft = element.borderRadiusBottomLeft || element.borderRadius || 0;
+            
+            ctx.moveTo(x + visibleX + topLeft, y + visibleY);
+            ctx.lineTo(x + visibleX + visibleWidth - topRight, y + visibleY);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY, x + visibleX + visibleWidth, y + visibleY + topRight);
+            ctx.lineTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight - bottomRight);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight, x + visibleX + visibleWidth - bottomRight, y + visibleY + visibleHeight);
+            ctx.lineTo(x + visibleX + bottomLeft, y + visibleY + visibleHeight);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY + visibleHeight, x + visibleX, y + visibleY + visibleHeight - bottomLeft);
+            ctx.lineTo(x + visibleX, y + visibleY + topLeft);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY, x + visibleX + topLeft, y + visibleY);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.strokeRect(x + visibleX, y + visibleY, visibleWidth, visibleHeight);
+          }
         }
         
         // Рисуем текст (только если он видим)
@@ -185,15 +265,39 @@ async function downloadCard({ format, side }) {
             img.src = element.imageUrl;
           });
           
-          // Вычисляем смещение для обрезанного изображения
-          const offsetX = Math.max(0, -element.x);
-          const offsetY = Math.max(0, -element.y);
+          // Применяем закругления для изображения
+          if (element.borderRadius > 0 || element.borderRadiusTopLeft > 0) {
+            ctx.save();
+            ctx.beginPath();
+            
+            const topLeft = element.borderRadiusTopLeft || element.borderRadius || 0;
+            const topRight = element.borderRadiusTopRight || element.borderRadius || 0;
+            const bottomRight = element.borderRadiusBottomRight || element.borderRadius || 0;
+            const bottomLeft = element.borderRadiusBottomLeft || element.borderRadius || 0;
+            
+            ctx.moveTo(x + visibleX + topLeft, y + visibleY);
+            ctx.lineTo(x + visibleX + visibleWidth - topRight, y + visibleY);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY, x + visibleX + visibleWidth, y + visibleY + topRight);
+            ctx.lineTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight - bottomRight);
+            ctx.quadraticCurveTo(x + visibleX + visibleWidth, y + visibleY + visibleHeight, x + visibleX + visibleWidth - bottomRight, y + visibleY + visibleHeight);
+            ctx.lineTo(x + visibleX + bottomLeft, y + visibleY + visibleHeight);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY + visibleHeight, x + visibleX, y + visibleY + visibleHeight - bottomLeft);
+            ctx.lineTo(x + visibleX, y + visibleY + topLeft);
+            ctx.quadraticCurveTo(x + visibleX, y + visibleY, x + visibleX + topLeft, y + visibleY);
+            ctx.closePath();
+            ctx.clip();
+          }
           
+          // Рисуем изображение с правильными размерами
           ctx.drawImage(
             img, 
-            offsetX, offsetY, visibleWidth, visibleHeight, // источник
-            x + visibleX, y + visibleY, visibleWidth, visibleHeight // назначение
+            0, 0, img.width, img.height, // источник (вся картинка)
+            x + visibleX, y + visibleY, visibleWidth, visibleHeight // назначение (размеры элемента)
           );
+          
+          if (element.borderRadius > 0 || element.borderRadiusTopLeft > 0) {
+            ctx.restore();
+          }
         }
       }
     }
@@ -263,14 +367,18 @@ const activeBackground = computed(() => {
 
 <template>
   <div @click="handleGlobalClick">
-    <ToolPanel 
-      @revert="handleRevert" 
-      @add-element="handleAddElement"
-      @delete-selected="handleDeleteSelected"
-      @toggle-properties-panel="togglePropertiesPanel"
-      @toggle-background-panel="toggleBackgroundPanel"
-      @open-save-modal="openSaveModal"
-    />
+      <ToolPanel 
+    @revert="handleRevert" 
+    @add-element="handleAddElement"
+    @delete-selected="handleDeleteSelected"
+    @toggle-properties-panel="togglePropertiesPanel"
+    @toggle-background-panel="toggleBackgroundPanel"
+    @open-save-modal="openSaveModal"
+    @bring-to-front="handleBringToFront"
+    @send-to-back="handleSendToBack"
+    @bring-forward="handleBringForward"
+    @send-backward="handleSendBackward"
+  />
     <Editor ref="editorRef" :flipped="isFlipped" />
     <PropertiesPanel 
       :selected-element="selectedElement"
