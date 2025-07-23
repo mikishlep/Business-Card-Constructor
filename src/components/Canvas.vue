@@ -15,6 +15,77 @@ const offset = ref({ x: 0, y: 0 });
 const start = ref({ x: 0, y: 0 });
 const isPanning = ref(false);
 
+// Управление границами
+const showBorders = ref(false);
+const borderMode = ref('all'); // 'pre-cut', 'final', 'safe', 'all'
+
+// Размеры визитки в мм
+const cardSizes = {
+    preCut: { width: 92, height: 52 },    // Дообрезной формат
+    final: { width: 90, height: 50 },     // Готовое изделие
+    safe: { width: 84, height: 44 }       // Безопасная зона
+};
+
+// Конвертация мм в пиксели (300 DPI)
+const mmToPx = (mm) => mm * 11.811; // 300 DPI = 11.811 px/mm
+
+// Вычисление размеров границ в пикселях
+const borderSizes = computed(() => ({
+    preCut: {
+        width: mmToPx(cardSizes.preCut.width),
+        height: mmToPx(cardSizes.preCut.height)
+    },
+    final: {
+        width: mmToPx(cardSizes.final.width),
+        height: mmToPx(cardSizes.final.height)
+    },
+    safe: {
+        width: mmToPx(cardSizes.safe.width),
+        height: mmToPx(cardSizes.safe.height)
+    }
+}));
+
+// Вычисление позиций границ (центрирование)
+const borderPositions = computed(() => {
+    const cardWidth = 1087; // Ширина карточки в пикселях
+    const cardHeight = 614; // Высота карточки в пикселях
+    
+    return {
+        preCut: {
+            x: (cardWidth - borderSizes.value.preCut.width) / 2,
+            y: (cardHeight - borderSizes.value.preCut.height) / 2
+        },
+        final: {
+            x: (cardWidth - borderSizes.value.final.width) / 2,
+            y: (cardHeight - borderSizes.value.final.height) / 2
+        },
+        safe: {
+            x: (cardWidth - borderSizes.value.safe.width) / 2,
+            y: (cardHeight - borderSizes.value.safe.height) / 2
+        }
+    };
+});
+
+// Функции управления границами
+function toggleBorders() {
+    showBorders.value = !showBorders.value;
+}
+
+function switchBorderMode(mode) {
+    borderMode.value = mode;
+    showBorders.value = true;
+}
+
+// Экспортируем функции
+defineExpose({
+    toggleBorders,
+    switchBorderMode,
+    showBorders,
+    borderMode,
+    borderSizes,
+    borderPositions
+});
+
 // Тут происходит нажатие колеса мыши
 function onMouseDown(e) {
     if (e.button !== 1) return;
@@ -95,6 +166,48 @@ const backgroundStyles = computed(() => {
         }">
             <div class="canvas-card" :class="{ flipped: props.flipped }">
                 <div class="card-side front" :style="backgroundStyles">
+                    <!-- Визуальные границы -->
+                    <div v-if="showBorders" class="print-borders">
+                        <!-- Дообрезной формат (92x52) -->
+                        <div 
+                            v-if="borderMode === 'pre-cut' || borderMode === 'all'"
+                            class="border-line pre-cut-border"
+                            :style="{
+                                left: borderPositions.preCut.x + 'px',
+                                top: borderPositions.preCut.y + 'px',
+                                width: borderSizes.preCut.width + 'px',
+                                height: borderSizes.preCut.height + 'px'
+                            }"
+                            title="Дообрезной формат (92×52 мм)"
+                        ></div>
+                        
+                        <!-- Готовое изделие (90x50) -->
+                        <div 
+                            v-if="borderMode === 'final' || borderMode === 'all'"
+                            class="border-line final-border"
+                            :style="{
+                                left: borderPositions.final.x + 'px',
+                                top: borderPositions.final.y + 'px',
+                                width: borderSizes.final.width + 'px',
+                                height: borderSizes.final.height + 'px'
+                            }"
+                            title="Готовое изделие (90×50 мм, 300 DPI)"
+                        ></div>
+                        
+                        <!-- Безопасная зона (84x44) -->
+                        <div 
+                            v-if="borderMode === 'safe' || borderMode === 'all'"
+                            class="border-line safe-border"
+                            :style="{
+                                left: borderPositions.safe.x + 'px',
+                                top: borderPositions.safe.y + 'px',
+                                width: borderSizes.safe.width + 'px',
+                                height: borderSizes.safe.height + 'px'
+                            }"
+                            title="Безопасная зона (84×44 мм)"
+                        ></div>
+                    </div>
+                    
                     <DraggableItem
                         v-for="element in props.flipped ? [] : (props.elements || [])"
                         :key="element.id"
@@ -124,6 +237,48 @@ const backgroundStyles = computed(() => {
                     />
                 </div>
                 <div class="card-side back" :style="backgroundStyles">
+                    <!-- Визуальные границы -->
+                    <div v-if="showBorders" class="print-borders">
+                        <!-- Дообрезной формат (92x52) -->
+                        <div 
+                            v-if="borderMode === 'pre-cut' || borderMode === 'all'"
+                            class="border-line pre-cut-border"
+                            :style="{
+                                left: borderPositions.preCut.x + 'px',
+                                top: borderPositions.preCut.y + 'px',
+                                width: borderSizes.preCut.width + 'px',
+                                height: borderSizes.preCut.height + 'px'
+                            }"
+                            title="Дообрезной формат (92×52 мм)"
+                        ></div>
+                        
+                        <!-- Готовое изделие (90x50) -->
+                        <div 
+                            v-if="borderMode === 'final' || borderMode === 'all'"
+                            class="border-line final-border"
+                            :style="{
+                                left: borderPositions.final.x + 'px',
+                                top: borderPositions.final.y + 'px',
+                                width: borderSizes.final.width + 'px',
+                                height: borderSizes.final.height + 'px'
+                            }"
+                            title="Готовое изделие (90×50 мм, 300 DPI)"
+                        ></div>
+                        
+                        <!-- Безопасная зона (84x44) -->
+                        <div 
+                            v-if="borderMode === 'safe' || borderMode === 'all'"
+                            class="border-line safe-border"
+                            :style="{
+                                left: borderPositions.safe.x + 'px',
+                                top: borderPositions.safe.y + 'px',
+                                width: borderSizes.safe.width + 'px',
+                                height: borderSizes.safe.height + 'px'
+                            }"
+                            title="Безопасная зона (84×44 мм)"
+                        ></div>
+                    </div>
+                    
                     <DraggableItem
                         v-for="element in props.flipped ? (props.elements || []) : []"
                         :key="element.id"
@@ -177,8 +332,8 @@ const backgroundStyles = computed(() => {
 }
 
 .canvas-card {
-    width: 525px;
-    height: 300px;
+    width: 1087px;
+    height: 614px;
     position: relative;
     transform-style: preserve-3d;
     transition: transform 0.6s ease;
@@ -205,5 +360,34 @@ const backgroundStyles = computed(() => {
 
 .card-side.back {
     transform: rotateY(180deg);
+}
+
+/* Стили для визуальных границ */
+.print-borders {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.border-line {
+    position: absolute;
+    border: 2px dashed;
+    pointer-events: none;
+}
+
+.pre-cut-border {
+    border-color: #ff6b6b;
+}
+
+.final-border {
+    border-color: #4ecdc4;
+}
+
+.safe-border {
+    border-color: #45b7d1;
 }
 </style>

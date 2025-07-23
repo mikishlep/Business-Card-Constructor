@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal', 'bring-to-front', 'send-to-back', 'bring-forward', 'send-backward']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal', 'bring-to-front', 'send-to-back', 'bring-forward', 'send-backward', 'toggle-borders', 'switch-border-mode']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
@@ -46,6 +46,15 @@ function handleBringForward() {
 
 function handleSendBackward() {
     emit('send-backward');
+}
+
+// Функции управления границами
+function handleToggleBorders() {
+    emit('toggle-borders');
+}
+
+function handleSwitchBorderMode(mode) {
+    emit('switch-border-mode', mode);
 }
 </script>
 
@@ -109,6 +118,59 @@ function handleSendBackward() {
         </div>
     </div>
     
+    <!-- Панель управления границами -->
+    <div class="layers-panel">
+        <div class="layers-buttons">
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="handleToggleBorders"
+                title="Показать/скрыть границы"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                </svg>
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="() => handleSwitchBorderMode('pre-cut')"
+                title="Дообрезной формат (92×52 мм)"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                </svg>
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="() => handleSwitchBorderMode('final')"
+                title="Готовое изделие (90×50 мм)"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18"></rect>
+                </svg>
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="() => handleSwitchBorderMode('safe')"
+                title="Безопасная зона (84×44 мм)"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="1" ry="1"></rect>
+                </svg>
+            </button>
+            <button 
+                class="toolPanel-buttons layer-button" 
+                @click="() => handleSwitchBorderMode('all')"
+                title="Все границы"
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18"></rect>
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                    <rect x="9" y="9" width="6" height="6"></rect>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
     <div class="turn-panel">
         <button 
             id="revert-tool" 
@@ -154,7 +216,6 @@ function handleSendBackward() {
 
 .toolPanel-container {
     display: grid;
-    /*grid-template-columns: repeat(2, 1fr);*/
     gap: 25px;
 }
 

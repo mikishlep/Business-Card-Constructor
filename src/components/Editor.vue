@@ -7,6 +7,7 @@ const props = defineProps({ flipped: Boolean });
 
 const frontElements = ref([]);
 const backElements = ref([]);
+const canvasRef = ref(null);
 
 // Инициализация zIndex для существующих элементов
 function initializeZIndex() {
@@ -253,6 +254,19 @@ function sendBackward() {
     }
 }
 
+// Функции управления границами
+function toggleBorders() {
+    if (canvasRef.value) {
+        canvasRef.value.toggleBorders();
+    }
+}
+
+function switchBorderMode(mode) {
+    if (canvasRef.value) {
+        canvasRef.value.switchBorderMode(mode);
+    }
+}
+
 // Экспортируем функции для использования в родительском компоненте
 defineExpose({
     addElement,
@@ -272,13 +286,17 @@ defineExpose({
     bringToFront,
     sendToBack,
     bringForward,
-    sendBackward
+    sendBackward,
+    // Функции управления границами
+    toggleBorders,
+    switchBorderMode
 });
 </script>
 
 <template>
     <div class="editor">
         <Canvas 
+            ref="canvasRef"
             :flipped="flipped" 
             :elements="activeElements"
             :background="activeBackground"
