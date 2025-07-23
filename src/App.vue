@@ -127,7 +127,7 @@ async function downloadAsPDF({ side }) {
     // Используем jsPDF для создания PDF
     const { jsPDF } = await import('jspdf');
     
-    // Размеры в мм
+    // Размеры в мм (соответствуют размерам визитки 1063x591 пикселей при 300 DPI)
     const cardWidth = 90; // мм
     const cardHeight = 50; // мм
     
@@ -161,31 +161,76 @@ async function downloadAsPDF({ side }) {
           continue;
         }
         
-        // Конвертируем координаты из пикселей в мм
-        const mmToPx = 525 / 90; // 525px = 90mm
-        const x = element.x / mmToPx;
-        const y = element.y / mmToPx;
-        const width = element.width / mmToPx;
-        const height = element.height / mmToPx;
+        // Конвертируем координаты из пикселей в мм (1063px = 90mm, 591px = 50mm)
+        const x = (element.x / 1063) * cardWidth;
+        const y = (element.y / 591) * cardHeight;
+        const width = (element.width / 1063) * cardWidth;
+        const height = (element.height / 591) * cardHeight;
         
-        // Рисуем фон элемента
+        // Рисуем фон элемента с закруглениями
         if (element.backgroundColor && element.backgroundColor !== 'transparent') {
           doc.setFillColor(element.backgroundColor);
-          doc.rect(x, y, width, height, 'F');
+          
+          // Проверяем, есть ли закругления
+          const hasRoundedCorners = element.borderRadius > 0 || 
+                                   element.borderRadiusTopLeft > 0 || 
+                                   element.borderRadiusTopRight > 0 || 
+                                   element.borderRadiusBottomLeft > 0 || 
+                                   element.borderRadiusBottomRight > 0;
+          
+          if (hasRoundedCorners) {
+            // Используем максимальное значение закругления
+            const radius = Math.max(
+              element.borderRadius || 0,
+              element.borderRadiusTopLeft || 0,
+              element.borderRadiusTopRight || 0,
+              element.borderRadiusBottomLeft || 0,
+              element.borderRadiusBottomRight || 0
+            );
+            const radiusMm = (radius / 1063) * cardWidth;
+            
+            // Рисуем закругленный прямоугольник
+            doc.setFillColor(element.backgroundColor);
+            doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'F');
+          } else {
+            // Рисуем обычный прямоугольник
+            doc.rect(x, y, width, height, 'F');
+          }
         }
         
-        // Рисуем границу элемента
+        // Рисуем границу элемента с закруглениями
         if (element.borderWidth > 0) {
           doc.setDrawColor(element.borderColor);
-          doc.setLineWidth(element.borderWidth / mmToPx);
-          doc.rect(x, y, width, height, 'S');
+          doc.setLineWidth((element.borderWidth / 1063) * cardWidth);
+          
+          const hasRoundedCorners = element.borderRadius > 0 || 
+                                   element.borderRadiusTopLeft > 0 || 
+                                   element.borderRadiusTopRight > 0 || 
+                                   element.borderRadiusBottomLeft > 0 || 
+                                   element.borderRadiusBottomRight > 0;
+          
+          if (hasRoundedCorners) {
+            const radius = Math.max(
+              element.borderRadius || 0,
+              element.borderRadiusTopLeft || 0,
+              element.borderRadiusTopRight || 0,
+              element.borderRadiusBottomLeft || 0,
+              element.borderRadiusBottomRight || 0
+            );
+            const radiusMm = (radius / 1063) * cardWidth;
+            
+            doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'S');
+          } else {
+            doc.rect(x, y, width, height, 'S');
+          }
         }
         
         // Рисуем текст
         if (element.type === 'text' && element.text) {
           doc.setTextColor(element.text.color || '#000000');
-          doc.setFontSize(element.text.fontSize || 14);
-          doc.setFont(element.text.fontFamily || 'Arial');
+          doc.setFontSize((element.text.fontSize || 14) * (cardWidth / 1063));
+          // Используем стандартный шрифт вместо Arial
+          doc.setFont('helvetica');
           
           const textX = x + width / 2;
           const textY = y + height / 2;
@@ -193,7 +238,7 @@ async function downloadAsPDF({ side }) {
           doc.text(element.text.content || 'Текст', textX, textY, { align: 'center', baseline: 'middle' });
         }
         
-        // Рисуем изображение
+        // Рисуем изображение с закруглениями
         if (element.type === 'image' && element.imageUrl) {
           try {
             const img = new Image();
@@ -203,7 +248,34 @@ async function downloadAsPDF({ side }) {
               img.src = element.imageUrl;
             });
             
-            doc.addImage(img, 'JPEG', x, y, width, height);
+            // Проверяем, есть ли закругления
+            const hasRoundedCorners = element.borderRadius > 0 || 
+                                     element.borderRadiusTopLeft > 0 || 
+                                     element.borderRadiusTopRight > 0 || 
+                                     element.borderRadiusBottomLeft > 0 || 
+                                     element.borderRadiusBottomRight > 0;
+            
+            if (hasRoundedCorners) {
+              const radius = Math.max(
+                element.borderRadius || 0,
+                element.borderRadiusTopLeft || 0,
+                element.borderRadiusTopRight || 0,
+                element.borderRadiusBottomLeft || 0,
+                element.borderRadiusBottomRight || 0
+              );
+              const radiusMm = (radius / 1063) * cardWidth;
+              
+              // Создаем маску для закругленных углов
+              doc.saveGraphicsState();
+              doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'S');
+              doc.clip();
+              // Исправляем поворот изображения - используем правильные параметры
+              doc.addImage(img, 'JPEG', x, y, width, height, undefined, 'FAST');
+              doc.restoreGraphicsState();
+            } else {
+              // Исправляем поворот изображения - используем правильные параметры
+              doc.addImage(img, 'JPEG', x, y, width, height, undefined, 'FAST');
+            }
           } catch (error) {
             console.error('Ошибка при добавлении изображения в PDF:', error);
           }
