@@ -62,19 +62,44 @@ function handleSwitchBorderMode(mode) {
   <section class="toolPanel-wrapper">
     <div class="toolPanel">
         <div class="toolPanel-container">
-            <button id="add-tool" class="toolPanel-buttons" @click="handleAddElement">
+            <button 
+                id="add-tool" 
+                class="toolPanel-buttons" 
+                @click="handleAddElement"
+                title="Добавить элемент"
+            >
                 <img src="../assets/icons/add.svg" alt="Добавить компонент">
             </button>
-            <button id="save-tool" class="toolPanel-buttons" @click="handleSave">
+            <button 
+                id="save-tool" 
+                class="toolPanel-buttons" 
+                @click="handleSave"
+                title="Сохранить визитку"
+            >
                 <img src="../assets/icons/save.svg" alt="Сохранить визитку">
             </button>
-            <button id="delete-tool" class="toolPanel-buttons" @click="handleDeleteSelected">
+            <button 
+                id="delete-tool" 
+                class="toolPanel-buttons" 
+                @click="handleDeleteSelected"
+                title="Удалить выбранный элемент"
+            >
                 <img src="../assets/icons/trash.svg" alt="Удалить компонент">
             </button>
-            <button id="add-text-tool" class="toolPanel-buttons" @click="() => emit('add-element', 'text')">
+            <button 
+                id="add-text-tool" 
+                class="toolPanel-buttons" 
+                @click="() => emit('add-element', 'text')"
+                title="Добавить текст"
+            >
                 <img src="../assets/icons/letter.svg" alt="Добавить текст">
             </button>
-            <button id="add-image-tool" class="toolPanel-buttons" @click="handleAddImage">
+            <button 
+                id="add-image-tool" 
+                class="toolPanel-buttons" 
+                @click="handleAddImage"
+                title="Добавить изображение"
+            >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -122,7 +147,7 @@ function handleSwitchBorderMode(mode) {
         <button 
             class="toolPanel-buttons layer-button" 
             @click="handleToggleBorders"
-            title="Показать/скрыть границы"
+            title="Показать/скрыть границы печати"
         >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -132,6 +157,7 @@ function handleSwitchBorderMode(mode) {
             id="revert-tool" 
             class="toolPanel-buttons"
             @click="emit('revert')"
+            title="Перевернуть визитку"
         >
             <img src="../assets/icons/revert.svg" alt="Повернуть визитку">
         </button>
@@ -139,7 +165,7 @@ function handleSwitchBorderMode(mode) {
             id="background-tool" 
             class="toolPanel-buttons"
             @click="handleToggleBackgroundPanel"
-            title="Панель фона"
+            title="Настройки фона"
         >
             <img src="../assets/icons/settings.svg" alt="" style="width: 18px; height: 18px;">
         </button>
@@ -178,10 +204,55 @@ function handleSwitchBorderMode(mode) {
 .toolPanel-buttons {
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
 }
 
 .toolPanel-buttons:hover {
     transform: scale(1.05);
+}
+
+/* Обновленные стили для tooltips - выезжают вправо */
+.toolPanel-buttons[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(100% + 15px); /* Позиционируем справа от кнопки */
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 9999; /* Максимальный z-index */
+    pointer-events: none;
+    animation: tooltipSlideIn 0.2s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.toolPanel-buttons[title]:hover::before {
+    content: '';
+    position: absolute;
+    left: calc(100% + 5px); /* Стрелочка справа от кнопки */
+    top: 50%;
+    transform: translateY(-50%);
+    border: 4px solid transparent;
+    border-right-color: rgba(0, 0, 0, 0.95); /* Стрелочка указывает влево */
+    z-index: 9999; /* Максимальный z-index */
+    pointer-events: none;
+}
+
+@keyframes tooltipSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
 }
 
 .toolPanel-buttons img {
