@@ -163,6 +163,22 @@ async function downloadAsPDF({ side }) {
       });
     }
     
+    // Вспомогательная функция для отрисовки закруглённого прямоугольника
+    function drawRoundedRect(ctx, x, y, width, height, radii) {
+      const { topLeft, topRight, bottomRight, bottomLeft } = radii;
+      ctx.beginPath();
+      ctx.moveTo(x + topLeft, y);
+      ctx.lineTo(x + width - topRight, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + topRight);
+      ctx.lineTo(x + width, y + height - bottomRight);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - bottomRight, y + height);
+      ctx.lineTo(x + bottomLeft, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - bottomLeft);
+      ctx.lineTo(x, y + topLeft);
+      ctx.quadraticCurveTo(x, y, x + topLeft, y);
+      ctx.closePath();
+    }
+
     // Функция для отрисовки стороны визитки в PDF
     async function drawCardSidePDF(elements, background, isBack = false) {
       // Рисуем фон
@@ -291,47 +307,78 @@ async function downloadAsPDF({ side }) {
           doc.text(element.text.content || 'Текст', textX, textY, { align: 'center', baseline: 'middle' });
         }
         
-        // Рисуем изображение с закруглениями
+        // Рисуем изображение с правильным масштабированием
         if (element.type === 'image' && element.imageUrl) {
           try {
+            // Загружаем изображение
             const img = new Image();
             await new Promise((resolve, reject) => {
               img.onload = resolve;
               img.onerror = reject;
               img.src = element.imageUrl;
             });
-            
-            // Исправляем ориентацию изображения
-            const fixedImageData = await fixImageOrientation(img);
-            
-            // Проверяем, есть ли закругления
-            const hasRoundedCorners = element.borderRadius > 0 || 
-                                     element.borderRadiusTopLeft > 0 || 
-                                     element.borderRadiusTopRight > 0 || 
-                                     element.borderRadiusBottomLeft > 0 || 
-                                     element.borderRadiusBottomRight > 0;
-            
-            if (hasRoundedCorners) {
-              const radius = Math.max(
-                element.borderRadius || 0,
-                element.borderRadiusTopLeft || 0,
-                element.borderRadiusTopRight || 0,
-                element.borderRadiusBottomLeft || 0,
-                element.borderRadiusBottomRight || 0
-              );
-              const radiusMm = (radius / 1087) * cardWidth;
-              
-              // Создаем маску для закругленных углов
-              doc.saveGraphicsState();
-              doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'S');
-              doc.clip();
-              // Используем исправленное изображение
-              doc.addImage(fixedImageData, 'JPEG', x, y, width, height, undefined, 'FAST');
-              doc.restoreGraphicsState();
+
+            // Определяем размеры холста в пикселях (300 DPI)
+            const dpi = 300;
+            const pxPerMm = dpi / 25.4;
+            const canvasWidth = width * pxPerMm;
+            const canvasHeight = height * pxPerMm;
+
+            // Создаём временный холст
+            const canvas = document.createElement('canvas');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Рассчитываем масштабирование для object-fit: cover
+            const imageAspect = img.width / img.height;
+            const canvasAspect = canvasWidth / canvasHeight;
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            if (imageAspect > canvasAspect) {
+              // Изображение шире, масштабируем по высоте
+              drawHeight = canvasHeight;
+              drawWidth = drawHeight * imageAspect;
+              offsetX = (canvasWidth - drawWidth) / 2;
+              offsetY = 0;
             } else {
-              // Используем исправленное изображение
-              doc.addImage(fixedImageData, 'JPEG', x, y, width, height, undefined, 'FAST');
+              // Изображение выше, масштабируем по ширине
+              drawWidth = canvasWidth;
+              drawHeight = drawWidth / imageAspect;
+              offsetX = 0;
+              offsetY = (canvasHeight - drawHeight) / 2;
             }
+
+            // Проверяем наличие закруглённых углов
+            const hasRoundedCorners = element.borderRadius > 0 ||
+              element.borderRadiusTopLeft > 0 ||
+              element.borderRadiusTopRight > 0 ||
+              element.borderRadiusBottomLeft > 0 ||
+              element.borderRadiusBottomRight > 0;
+
+            if (hasRoundedCorners) {
+              ctx.save();
+              ctx.beginPath();
+              // Функция для отрисовки закруглённого прямоугольника
+              drawRoundedRect(ctx, 0, 0, canvasWidth, canvasHeight, {
+                topLeft: (element.borderRadiusTopLeft || element.borderRadius || 0) / 1087 * canvasWidth,
+                topRight: (element.borderRadiusTopRight || element.borderRadius || 0) / 1087 * canvasWidth,
+                bottomRight: (element.borderRadiusBottomRight || element.borderRadius || 0) / 1087 * canvasWidth,
+                bottomLeft: (element.borderRadiusBottomLeft || element.borderRadius || 0) / 1087 * canvasWidth,
+              });
+              ctx.clip();
+            }
+
+            // Рисуем изображение на холсте
+            ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+            if (hasRoundedCorners) {
+              ctx.restore();
+            }
+
+            // Добавляем холст в PDF
+            const canvasData = canvas.toDataURL('image/jpeg', 1.0);
+            doc.addImage(canvasData, 'JPEG', x, y, width, height, undefined, 'FAST');
           } catch (error) {
             console.error('Ошибка при добавлении изображения в PDF:', error);
           }
