@@ -552,6 +552,35 @@ function setColorBackground(color) {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Стили для option элементов в select */
+.property-group select option {
+  background-color: #2c3e50;
+  color: white;
+  padding: 8px 12px;
+}
+
+/* Стили для выпадающего списка на Windows */
+.property-group select {
+  /* Принудительно устанавливаем цвет текста для Windows */
+  color: white !important;
+}
+
+.property-group select option {
+  background-color: #424242 !important;
+  color: white !important;
+}
+
+/* Дополнительные стили для лучшей совместимости с Windows */
+.property-group select:focus option:checked {
+  background-color: #717171 !important;
+  color: white !important;
+}
+
+.property-group select:focus option:hover {
+  background-color: #3a3a3a !important;
+  color: white !important;
+}
+
 .property-group input[type="color"] {
   width: 100%;
   height: 40px;
