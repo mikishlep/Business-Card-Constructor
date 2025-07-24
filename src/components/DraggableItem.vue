@@ -231,6 +231,16 @@ function onDoubleClick(e) {
 function onBlur() {
   if (props.type === 'text') {
     isEditing.value = false;
+    // Также сохраняем изменения при потере фокуса
+    const textElement = elementRef.value.querySelector('.text-element p');
+    if (textElement) {
+      const newContent = textElement.textContent || textElement.innerText;
+      emit('update:position', {
+        id: props.id,
+        property: 'text.content',
+        value: newContent
+      });
+    }
   }
 }
 
@@ -239,6 +249,19 @@ function onKeyDown(e) {
   if (e.key === 'Escape' && isEditing.value) {
     isEditing.value = false;
     e.target.blur();
+  }
+}
+
+// Обработка ввода текста
+function onTextInput(e) {
+  if (props.type === 'text') {
+    const newContent = e.target.textContent || e.target.innerText;
+    // Эмитим событие для обновления текста в родительском компоненте
+    emit('update:position', {
+      id: props.id,
+      property: 'text.content',
+      value: newContent
+    });
   }
 }
 
@@ -344,11 +367,12 @@ onUnmounted(() => {
           <p 
             contenteditable="true" 
             @blur="onBlur"
+            @input="onTextInput"
             @keydown="onKeyDown"
             :class="{ 'editing': isEditing }"
             :style="textStyles"
           >
-            {{ text?.content || 'Текст' }}
+            {{ text?.content }}
           </p>
         </div>
       </template>

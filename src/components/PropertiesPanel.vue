@@ -57,6 +57,11 @@ function setTransparentBackground() {
 function setColorBackground(color) {
   updateProperty('backgroundColor', color);
 }
+
+// Функция для получения содержимого текста
+function getTextContent() {
+  return props.selectedElement?.text?.content || '';
+}
 </script>
 
 <template>
@@ -246,7 +251,7 @@ function setColorBackground(color) {
       <div class="property-group">
         <label>Содержимое</label>
         <textarea 
-          :value="selectedElement?.text?.content || 'Текст'"
+          :value="selectedElement?.text?.content || ''"
           @input="updateTextProperty('content', $event.target.value)"
           rows="3"
           placeholder="Введите текст..."

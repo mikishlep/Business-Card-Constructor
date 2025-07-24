@@ -132,15 +132,27 @@ function addElement(type = 'default') {
 }
 
 // Обновление позиции и размера элемента
-function updateElementPosition({ id, position, size }) {
+function updateElementPosition({ id, position, size, property, value }) {
     const elements = props.flipped ? backElements.value : frontElements.value;
     const element = elements.find(el => el.id === id);
     if (element) {
-        element.x = position.x;
-        element.y = position.y;
+        if (position) {
+            element.x = position.x;
+            element.y = position.y;
+        }
         if (size) {
             element.width = size.width;
             element.height = size.height;
+        }
+        // Добавляем обработку обновления свойств
+        if (property && value !== undefined) {
+            if (property.includes('.')) {
+                const [parent, child] = property.split('.');
+                if (!element[parent]) element[parent] = {};
+                element[parent][child] = value;
+            } else {
+                element[property] = value;
+            }
         }
     }
 }
