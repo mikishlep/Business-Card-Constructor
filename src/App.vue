@@ -169,6 +169,31 @@ async function downloadAsPDF({ side }) {
       if (background.type === 'color') {
         doc.setFillColor(background.value || '#ffffff');
         doc.rect(0, 0, cardWidth, cardHeight, 'F');
+      } else if (background.type === 'image' || background.type === 'collection') {
+        // Обрабатываем фоновое изображение
+        try {
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = background.value;
+          });
+          
+          // Исправляем ориентацию фонового изображения
+          const fixedImageData = await fixImageOrientation(img);
+          
+          // Добавляем фоновое изображение на всю визитку
+          doc.addImage(fixedImageData, 'JPEG', 0, 0, cardWidth, cardHeight, undefined, 'FAST');
+        } catch (error) {
+          console.error('Ошибка при добавлении фонового изображения в PDF:', error);
+          // Если не удалось загрузить изображение, рисуем белый фон
+          doc.setFillColor('#ffffff');
+          doc.rect(0, 0, cardWidth, cardHeight, 'F');
+        }
+      } else {
+        // Если тип фона не распознан, рисуем белый фон
+        doc.setFillColor('#ffffff');
+        doc.rect(0, 0, cardWidth, cardHeight, 'F');
       }
       
       // Сортируем элементы по z-index
