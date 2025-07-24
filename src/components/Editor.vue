@@ -102,6 +102,17 @@ function addElement(type = 'default') {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
+        
+        // Добавляем элемент в массив перед открытием диалога
+        if (props.flipped) {
+            backElements.value.push(newElement);
+        } else {
+            frontElements.value.push(newElement);
+        }
+        
+        // Снимаем выбор со всех других элементов
+        elements.forEach(el => el.isSelected = false);
+        
         input.onchange = (event) => {
             const file = event.target.files[0];
             if (file) {
@@ -116,9 +127,26 @@ function addElement(type = 'default') {
                     }
                 };
                 reader.readAsDataURL(file);
+            } else {
+                // Если файл не выбран, удаляем элемент
+                removeElement(newElement.id);
             }
         };
+        
+        // Добавляем обработчик для отмены выбора
+        input.oncancel = () => {
+            // Проверяем через небольшую задержку, был ли выбран файл
+            setTimeout(() => {
+                const elements = props.flipped ? backElements.value : frontElements.value;
+                const element = elements.find(el => el.id === newElement.id);
+                if (element && !element.imageUrl) {
+                    removeElement(newElement.id);
+                }
+            }, 100);
+        };
+        
         input.click();
+        return; // Выходим из функции
     }
     
     // Снимаем выбор со всех других элементов
@@ -128,6 +156,15 @@ function addElement(type = 'default') {
         backElements.value.push(newElement);
     } else {
         frontElements.value.push(newElement);
+    }
+}
+
+// Функция для удаления элемента
+function removeElement(elementId) {
+    const elements = props.flipped ? backElements.value : frontElements.value;
+    const elementIndex = elements.findIndex(el => el.id === elementId);
+    if (elementIndex !== -1) {
+        elements.splice(elementIndex, 1);
     }
 }
 
