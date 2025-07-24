@@ -151,6 +151,18 @@ async function downloadAsPDF({ side }) {
     const frontBackground = editorRef.value.frontBackground || { type: 'color', value: '#ffffff' };
     const backBackground = editorRef.value.backBackground || { type: 'color', value: '#f0f0f0' };
     
+    // Функция для исправления ориентации изображения
+    function fixImageOrientation(img) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg'));
+      });
+    }
+    
     // Функция для отрисовки стороны визитки в PDF
     async function drawCardSidePDF(elements, background, isBack = false) {
       // Рисуем фон
@@ -170,10 +182,10 @@ async function downloadAsPDF({ side }) {
         }
         
         // Конвертируем координаты из пикселей в мм (1063px = 90mm, 591px = 50mm)
-        const x = (element.x / 1063) * cardWidth;
-        const y = (element.y / 591) * cardHeight;
-        const width = (element.width / 1063) * cardWidth;
-        const height = (element.height / 591) * cardHeight;
+        const x = (element.x / 1087) * cardWidth;
+        const y = (element.y / 614) * cardHeight;
+        const width = (element.width / 1087) * cardWidth;
+        const height = (element.height / 614) * cardHeight;
         
         // Рисуем фон элемента с закруглениями
         if (element.backgroundColor && element.backgroundColor !== 'transparent') {
@@ -195,7 +207,7 @@ async function downloadAsPDF({ side }) {
               element.borderRadiusBottomLeft || 0,
               element.borderRadiusBottomRight || 0
             );
-            const radiusMm = (radius / 1063) * cardWidth;
+            const radiusMm = (radius / 1087) * cardWidth;
             
             // Рисуем закругленный прямоугольник
             doc.setFillColor(element.backgroundColor);
@@ -209,7 +221,7 @@ async function downloadAsPDF({ side }) {
         // Рисуем границу элемента с закруглениями
         if (element.borderWidth > 0) {
           doc.setDrawColor(element.borderColor);
-          doc.setLineWidth((element.borderWidth / 1063) * cardWidth);
+          doc.setLineWidth((element.borderWidth / 1087) * cardWidth);
           
           const hasRoundedCorners = element.borderRadius > 0 || 
                                    element.borderRadiusTopLeft > 0 || 
@@ -225,7 +237,7 @@ async function downloadAsPDF({ side }) {
               element.borderRadiusBottomLeft || 0,
               element.borderRadiusBottomRight || 0
             );
-            const radiusMm = (radius / 1063) * cardWidth;
+            const radiusMm = (radius / 1087) * cardWidth;
             
             doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'S');
           } else {
@@ -236,9 +248,17 @@ async function downloadAsPDF({ side }) {
         // Рисуем текст
         if (element.type === 'text' && element.text) {
           doc.setTextColor(element.text.color || '#000000');
-          doc.setFontSize((element.text.fontSize || 14) * (cardWidth / 1063));
+
+          // Конвертируем в PT для PDF
+          const fontPx = element.text.fontSize || 14;
+          // const fontPt = fontPx * 0.75;
+          const scaleFactor = cardWidth / 1087;
+          const fontMm = fontPx * scaleFactor;          // шрифт в мм
+          const fontPt = fontMm * (72 / 25.4);
+          // doc.setFontSize((fontPt) * (cardWidth / 1087));
+          doc.setFontSize(fontPt);
           // Используем стандартный шрифт вместо Arial
-          doc.setFont('helvetica');
+          doc.setFont('Arial', 'normal');
           
           const textX = x + width / 2;
           const textY = y + height / 2;
@@ -256,6 +276,9 @@ async function downloadAsPDF({ side }) {
               img.src = element.imageUrl;
             });
             
+            // Исправляем ориентацию изображения
+            const fixedImageData = await fixImageOrientation(img);
+            
             // Проверяем, есть ли закругления
             const hasRoundedCorners = element.borderRadius > 0 || 
                                      element.borderRadiusTopLeft > 0 || 
@@ -271,18 +294,18 @@ async function downloadAsPDF({ side }) {
                 element.borderRadiusBottomLeft || 0,
                 element.borderRadiusBottomRight || 0
               );
-              const radiusMm = (radius / 1063) * cardWidth;
+              const radiusMm = (radius / 1087) * cardWidth;
               
               // Создаем маску для закругленных углов
               doc.saveGraphicsState();
               doc.roundedRect(x, y, width, height, radiusMm, radiusMm, 'S');
               doc.clip();
-              // Исправляем поворот изображения - используем правильные параметры
-              doc.addImage(img, 'JPEG', x, y, width, height, undefined, 'FAST');
+              // Используем исправленное изображение
+              doc.addImage(fixedImageData, 'JPEG', x, y, width, height, undefined, 'FAST');
               doc.restoreGraphicsState();
             } else {
-              // Исправляем поворот изображения - используем правильные параметры
-              doc.addImage(img, 'JPEG', x, y, width, height, undefined, 'FAST');
+              // Используем исправленное изображение
+              doc.addImage(fixedImageData, 'JPEG', x, y, width, height, undefined, 'FAST');
             }
           } catch (error) {
             console.error('Ошибка при добавлении изображения в PDF:', error);
