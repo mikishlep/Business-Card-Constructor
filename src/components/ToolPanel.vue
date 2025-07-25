@@ -229,7 +229,7 @@ function handleShowHelp() {
 .toolPanel-buttons[title]:hover::after {
     content: attr(title);
     position: absolute;
-    left: calc(100% + 15px); /* Позиционируем справа от кнопки */
+    left: calc(100% + 15px); /* Позиционируем справа oт кнопки */
     top: 50%;
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.95);
