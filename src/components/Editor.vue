@@ -85,7 +85,7 @@ function addElement(type = 'default') {
         opacity: 1,
         hasShadow: false,
         text: type === 'text' ? {
-            content: 'Текст',
+            content: '',
             color: '#000000',
             fontSize: 14,
             fontFamily: 'Arial MT',
