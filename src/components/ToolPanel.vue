@@ -1,5 +1,5 @@
 <script setup>
-const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal', 'bring-to-front', 'send-to-back', 'bring-forward', 'send-backward', 'toggle-borders', 'switch-border-mode']);
+const emit = defineEmits(['revert', 'add-element', 'delete-selected', 'toggle-properties-panel', 'toggle-background-panel', 'open-save-modal', 'bring-to-front', 'send-to-back', 'bring-forward', 'send-backward', 'toggle-borders', 'switch-border-mode', 'show-help']);
 
 // Обработка клика по кнопке добавления
 function handleAddElement() {
@@ -56,6 +56,11 @@ function handleToggleBorders() {
 function handleSwitchBorderMode(mode) {
     emit('switch-border-mode', mode);
 }
+
+// Обработка клика по кнопке помощи
+function handleShowHelp() {
+    emit('show-help');
+}
 </script>
 
 <template>
@@ -105,6 +110,15 @@ function handleSwitchBorderMode(mode) {
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <path d="M21 15l-5-5L5 21"></path>
                 </svg>
+            </button>
+            <!-- Кнопка помощи -->
+            <button 
+                id="help-tool" 
+                class="toolPanel-buttons help-button" 
+                @click="handleShowHelp"
+                title="Показать обучение"
+            >
+                <img src="../assets/icons/help.svg" alt="Добавить текст">
             </button>
         </div>
     </div>

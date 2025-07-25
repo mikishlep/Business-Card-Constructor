@@ -4,12 +4,14 @@ import Editor from './components/Editor.vue';
 import PropertiesPanel from './components/PropertiesPanel.vue';
 import BackgroundPanel from './components/BackgroundPanel.vue';
 import SaveModal from './components/SaveModal.vue';
-import { ref, computed } from 'vue';
+import WelcomeModal from './components/WelcomeModal.vue';
+import { ref, computed, onMounted } from 'vue';
 
 const isFlipped = ref(false);
 const isPropertiesPanelVisible = ref(false);
 const isBackgroundPanelVisible = ref(false);
 const isSaveModalVisible = ref(false);
+const isWelcomeModalVisible = ref(false);
 const editorRef = ref(null);
 
 // Разворот визитки
@@ -669,6 +671,27 @@ const activeBackground = computed(() => {
   }
   return null;
 });
+
+// Проверяем, нужно ли показать приветственное окно
+onMounted(() => {
+  const hasVisited = localStorage.getItem('hasVisitedBefore');
+  if (!hasVisited) {
+    // Небольшая задержка для плавного появления
+    setTimeout(() => {
+      isWelcomeModalVisible.value = true;
+    }, 500);
+  }
+});
+
+// Закрытие приветственного модального окна
+function closeWelcomeModal() {
+  isWelcomeModalVisible.value = false;
+}
+
+// Показать приветственное окно снова
+function showHelp() {
+  isWelcomeModalVisible.value = true;
+}
 </script>
 
 <template>
@@ -686,6 +709,7 @@ const activeBackground = computed(() => {
     @send-backward="handleSendBackward"
     @toggle-borders="handleToggleBorders"
     @switch-border-mode="handleSwitchBorderMode"
+    @show-help="showHelp"
   />
     <Editor ref="editorRef" :flipped="isFlipped" />
     <PropertiesPanel 
@@ -704,6 +728,10 @@ const activeBackground = computed(() => {
       :is-visible="isSaveModalVisible"
       @close="closeSaveModal"
       @download="downloadCard"
+    />
+    <WelcomeModal
+      :is-visible="isWelcomeModalVisible"
+      @close="closeWelcomeModal"
     />
   </div>
 </template>
