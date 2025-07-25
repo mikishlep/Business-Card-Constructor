@@ -254,9 +254,14 @@ function onBlur() {
   }
 }
 
-// Обработка нажатия Escape для выхода из режима редактирования
+// Обработка нажатия клавиш
 function onKeyDown(e) {
-  if (e.key === 'Escape' && isEditing.value) {
+  if (e.key === 'Enter' && isEditing.value) {
+    e.preventDefault();
+    // Вставляем перенос строки без создания нового <div>/<p>
+    document.execCommand('insertLineBreak');
+  }
+  else if (e.key === 'Escape' && isEditing.value) {
     isEditing.value = false;
     e.target.blur();
   }
@@ -415,6 +420,7 @@ onUnmounted(() => {
           <p 
             ref="textElement"
             contenteditable="true" 
+            dir="ltr"
             spellcheck="false"
             autocomplete="off"
             autocorrect="off"
@@ -540,6 +546,9 @@ onUnmounted(() => {
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  /* Фиксация направления текста */
+  direction: ltr;
+  unicode-bidi: embed;
 }
 
 .text-element p.editing {
