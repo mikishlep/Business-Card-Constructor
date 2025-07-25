@@ -317,7 +317,6 @@ async function downloadAsPDF({ side }) {
         // Рисуем изображение с правильным масштабированием
         if (element.type === 'image' && element.imageUrl) {
           try {
-            // Загружаем изображение
             const img = new Image();
             await new Promise((resolve, reject) => {
               img.onload = resolve;
@@ -325,67 +324,61 @@ async function downloadAsPDF({ side }) {
               img.src = element.imageUrl;
             });
 
-            // Определяем размеры холста в пикселях (300 DPI)
+            // Размеры canvas (300 DPI)
             const dpi = 300;
             const pxPerMm = dpi / 25.4;
             const canvasWidth = width * pxPerMm;
             const canvasHeight = height * pxPerMm;
 
-            // Создаём временный холст
+            // Создаём временный canvas
             const canvas = document.createElement('canvas');
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
             const ctx = canvas.getContext('2d');
 
-            // Рассчитываем масштабирование для object-fit: cover
+            // --- ТВОЯ ЛОГИКА ОТРИСОВКИ СКРУГЛЕНИЙ (как для PNG/JPEG) ---
+            // Например:
+            const rTL = (element.borderRadiusTopLeft || element.borderRadius || 0) * pxPerMm / (1087 / cardWidth);
+            const rTR = (element.borderRadiusTopRight || element.borderRadius || 0) * pxPerMm / (1087 / cardWidth);
+            const rBR = (element.borderRadiusBottomRight || element.borderRadius || 0) * pxPerMm / (1087 / cardWidth);
+            const rBL = (element.borderRadiusBottomLeft || element.borderRadius || 0) * pxPerMm / (1087 / cardWidth);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(rTL, 0);
+            ctx.lineTo(canvasWidth - rTR, 0);
+            ctx.quadraticCurveTo(canvasWidth, 0, canvasWidth, rTR);
+            ctx.lineTo(canvasWidth, canvasHeight - rBR);
+            ctx.quadraticCurveTo(canvasWidth, canvasHeight, canvasWidth - rBR, canvasHeight);
+            ctx.lineTo(rBL, canvasHeight);
+            ctx.quadraticCurveTo(0, canvasHeight, 0, canvasHeight - rBL);
+            ctx.lineTo(0, rTL);
+            ctx.quadraticCurveTo(0, 0, rTL, 0);
+            ctx.closePath();
+            ctx.clip();
+
+            // object-fit: cover
             const imageAspect = img.width / img.height;
             const canvasAspect = canvasWidth / canvasHeight;
             let drawWidth, drawHeight, offsetX, offsetY;
-
             if (imageAspect > canvasAspect) {
-              // Изображение шире, масштабируем по высоте
               drawHeight = canvasHeight;
               drawWidth = drawHeight * imageAspect;
               offsetX = (canvasWidth - drawWidth) / 2;
               offsetY = 0;
             } else {
-              // Изображение выше, масштабируем по ширине
               drawWidth = canvasWidth;
               drawHeight = drawWidth / imageAspect;
               offsetX = 0;
               offsetY = (canvasHeight - drawHeight) / 2;
             }
-
-            // Проверяем наличие закруглённых углов
-            const hasRoundedCorners = element.borderRadius > 0 ||
-              element.borderRadiusTopLeft > 0 ||
-              element.borderRadiusTopRight > 0 ||
-              element.borderRadiusBottomLeft > 0 ||
-              element.borderRadiusBottomRight > 0;
-
-            if (hasRoundedCorners) {
-              ctx.save();
-              ctx.beginPath();
-              // Функция для отрисовки закруглённого прямоугольника
-              drawRoundedRect(ctx, 0, 0, canvasWidth, canvasHeight, {
-                topLeft: (element.borderRadiusTopLeft || element.borderRadius || 0) / 1087 * canvasWidth,
-                topRight: (element.borderRadiusTopRight || element.borderRadius || 0) / 1087 * canvasWidth,
-                bottomRight: (element.borderRadiusBottomRight || element.borderRadius || 0) / 1087 * canvasWidth,
-                bottomLeft: (element.borderRadiusBottomLeft || element.borderRadius || 0) / 1087 * canvasWidth,
-              });
-              ctx.clip();
-            }
-
-            // Рисуем изображение на холсте
             ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-            if (hasRoundedCorners) {
-              ctx.restore();
-            }
+            ctx.restore();
 
-            // Добавляем холст в PDF
-            const canvasData = canvas.toDataURL('image/jpeg', 1.0);
-            doc.addImage(canvasData, 'JPEG', x, y, width, height, undefined, 'FAST');
+            // Вставляем canvas в PDF
+            const canvasData = canvas.toDataURL('image/png');
+            doc.addImage(canvasData, 'PNG', x, y, width, height, undefined, 'FAST');
           } catch (error) {
             console.error('Ошибка при добавлении изображения в PDF:', error);
           }
