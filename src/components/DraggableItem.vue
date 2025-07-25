@@ -228,6 +228,8 @@ function onDoubleClick(e) {
     isEditing.value = true;
     
     if (textElement.value) {
+      // НЕ очищаем содержимое - позволяем редактировать существующий текст
+      // Просто устанавливаем фокус и выделяем весь текст
       textElement.value.focus();
       const range = document.createRange();
       range.selectNodeContents(textElement.value);
@@ -242,14 +244,27 @@ function onDoubleClick(e) {
 function onBlur() {
   if (props.type === 'text') {
     isEditing.value = false;
-    // Также сохраняем изменения при потере фокуса
+    
     if (textElement.value) {
-      const newContent = textElement.value.textContent || textElement.value.innerText;
-      emit('update:position', {
-        id: props.id,
-        property: 'text.content',
-        value: newContent
-      });
+      const newContent = textElement.value.textContent?.trim();
+      
+      // Если пользователь ничего не ввел, восстанавливаем дефолтный текст
+      if (!newContent) {
+        const defaultContent = props.text?.content || 'Текст';
+        textElement.value.textContent = defaultContent;
+        emit('update:position', {
+          id: props.id,
+          property: 'text.content',
+          value: defaultContent
+        });
+      } else {
+        // Сохраняем введенный текст
+        emit('update:position', {
+          id: props.id,
+          property: 'text.content',
+          value: newContent
+        });
+      }
     }
   }
 }
@@ -435,6 +450,7 @@ onUnmounted(() => {
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
+            data-placeholder="Введите текст..."
             @blur="onBlur"
             @input="onTextInput"
             @keydown="onKeyDown"
@@ -556,15 +572,27 @@ onUnmounted(() => {
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
-  /* Фиксация направления текста */
   direction: ltr;
   unicode-bidi: embed;
+}
+
+/* Placeholder для пустого текста */
+.text-element p:empty::before {
+  content: attr(data-placeholder);
+  color: #999;
+  font-style: italic;
+  pointer-events: none;
 }
 
 .text-element p.editing {
   background-color: rgba(0, 123, 255, 0.1);
   border: 1px solid #007bff;
   cursor: text;
+}
+
+/* Скрываем placeholder при редактировании */
+.text-element p.editing:empty::before {
+  display: none;
 }
 
 .text-element p:focus {
