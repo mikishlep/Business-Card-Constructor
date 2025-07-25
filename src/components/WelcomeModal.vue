@@ -264,6 +264,7 @@ const highlightElement = computed(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 9999;
 }
 
 .modal-header {

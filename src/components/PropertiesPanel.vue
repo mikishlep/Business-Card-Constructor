@@ -293,12 +293,12 @@ const fontList = computed(() => {
           <option v-for="font in fontList" :key="font.name" :value="font.name">
             {{ font.displayName }}
           </option>
-          <option value="Arial">Arial</option>
+          <!--<option value="Arial">Arial</option>
           <option value="Helvetica">Helvetica</option>
           <option value="Times New Roman">Times New Roman</option>
           <option value="Georgia">Georgia</option>
           <option value="Verdana">Verdana</option>
-          <option value="Courier New">Courier New</option>
+          <option value="Courier New">Courier New</option>-->
         </select>
       </div>
       <div class="property-group">
@@ -322,7 +322,7 @@ const fontList = computed(() => {
           />
           Жирный
         </label>
-        <label>
+        <!--<label>
           <input 
             type="checkbox" 
             :checked="selectedElement?.text?.italic || false"
@@ -337,7 +337,7 @@ const fontList = computed(() => {
             @change="updateTextProperty('underline', $event.target.checked)"
           />
           Подчеркнутый
-        </label>
+        </label>-->
       </div>
     </div>
 
