@@ -42,16 +42,28 @@ const size = ref({
   height: props.height || (props.type === 'text' ? 60 : 80) 
 });
 
-// Синхронизация содержимого при изменении пропсов
-watch(() => props.text?.content, (newContent) => {
-  if (textElement.value && newContent !== undefined && !isEditing.value) {
+// Заменим существующий watch на более надежный:
+watch(() => props.text, (newText) => {
+  if (textElement.value && newText && newText.content !== undefined && !isEditing.value) {
     nextTick(() => {
-      if (textElement.value.textContent !== newContent) {
-        textElement.value.textContent = newContent;
+      // Проверяем, что содержимое действительно изменилось
+      if (textElement.value.textContent !== newText.content) {
+        textElement.value.textContent = newText.content;
       }
     });
   }
-}, { immediate: true });
+}, { deep: true, immediate: true });
+
+// Также добавим watch для отслеживания изменений props в целом
+watch(() => props, () => {
+  if (textElement.value && props.text && props.text.content !== undefined && !isEditing.value) {
+    nextTick(() => {
+      if (textElement.value.textContent !== props.text.content) {
+        textElement.value.textContent = props.text.content;
+      }
+    });
+  }
+}, { deep: true });
 
 // Следим за изменениями пропсов
 watch(() => props.width, (newWidth) => {
@@ -248,21 +260,12 @@ function onBlur() {
     if (textElement.value) {
       const newContent = textElement.value.textContent?.trim();
       
-      // Если пользователь ничего не ввел, восстанавливаем дефолтный текст
-      if (!newContent) {
-        const defaultContent = props.text?.content || 'Текст';
-        textElement.value.textContent = defaultContent;
+      // Сохраняем текст только если он действительно изменился
+      if (newContent !== props.text?.content) {
         emit('update:position', {
           id: props.id,
           property: 'text.content',
-          value: defaultContent
-        });
-      } else {
-        // Сохраняем введенный текст
-        emit('update:position', {
-          id: props.id,
-          property: 'text.content',
-          value: newContent
+          value: newContent || 'Текст'
         });
       }
     }
@@ -415,6 +418,12 @@ const imageElementStyles = computed(() => {
 });
 
 onMounted(() => {
+  // Принудительно устанавливаем содержимое при монтировании
+  if (textElement.value && props.text && props.text.content) {
+    nextTick(() => {
+      textElement.value.textContent = props.text.content;
+    });
+  }
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
 });
