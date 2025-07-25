@@ -18,10 +18,10 @@ import oswaldRegular from "../fonts/oswald-regular.js";
 import oswaldBold from "../fonts/oswald-bold.js";
 
 export const fonts = {
-    'Arial MT': {
+    /*'Arial MT': {
       normal: arialmtNormal.default,
       bold: arialmtBold.default
-    },
+    },*/
     'Caveat': {
       normal: caveatRegular.default,
       bold: caveatBold.default
@@ -30,10 +30,10 @@ export const fonts = {
       normal: exo2Regular.default,
       bold: exo2Bold.default
     },
-    'Lato': {
+    /*'Lato': {
       normal: latoRegular.default,
       bold: latoBold.default
-    },
+    },*/
     'Montserrat': {
       normal: montserratRegular.default,
       bold: montserratBold.default

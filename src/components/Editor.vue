@@ -88,7 +88,7 @@ function addElement(type = 'default') {
             content: '',
             color: '#000000',
             fontSize: 14,
-            fontFamily: 'Arial MT',
+            fontFamily: 'Montserrat',
             textAlign: 'center',
             bold: false,
             italic: false,
