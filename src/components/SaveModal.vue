@@ -10,13 +10,13 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'download']);
 
-const selectedFormat = ref('png');
+const selectedFormat = ref('pdf');
 const selectedSide = ref('both'); // 'front', 'back', 'both'
 
 const formats = [
-  { value: 'png', label: 'PNG', description: 'Высокое качество, прозрачность' },
-  { value: 'jpeg', label: 'JPEG', description: 'Меньший размер файла' },
-  { value: 'svg', label: 'SVG', description: 'Векторный формат, масштабируемый' },
+  //{ value: 'png', label: 'PNG', description: 'Высокое качество, прозрачность' },
+  //{ value: 'jpeg', label: 'JPEG', description: 'Меньший размер файла' },
+  //{ value: 'svg', label: 'SVG', description: 'Векторный формат, масштабируемый' },
   { value: 'pdf', label: 'PDF', description: 'Для печати и типографии' }
 ];
 
