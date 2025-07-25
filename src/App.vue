@@ -289,22 +289,29 @@ async function downloadAsPDF({ side }) {
         // Рисуем текст
         if (element.type === 'text' && element.text) {
           doc.setTextColor(element.text.color || '#000000');
-
-          // Конвертируем в PT для PDF
           const fontPx = element.text.fontSize || 14;
-          // const fontPt = fontPx * 0.75;
           const scaleFactor = cardWidth / 1087;
-          const fontMm = fontPx * scaleFactor;          // шрифт в мм
+          const fontMm = fontPx * scaleFactor;
           const fontPt = fontMm * (72 / 25.4);
-          // doc.setFontSize((fontPt) * (cardWidth / 1087));
           doc.setFontSize(fontPt);
-          // Используем стандартный шрифт вместо Arial
           doc.setFont('Arial', 'normal');
-          
-          const textX = x + width / 2;
-          const textY = y + height / 2;
-          
-          doc.text(element.text.content || 'Текст', textX, textY, { align: 'center', baseline: 'middle' });
+
+          const content = element.text.content || 'Текст';
+          const lines = doc.splitTextToSize(content, width);
+          const lineHeightMm = fontPt * (1/72) * 25.4;
+          const textHeight = lines.length * lineHeightMm;
+          const startY = y + (height / 2) - (textHeight / 2) + lineHeightMm / 2;
+
+          doc.text(
+            lines,
+            x + width / 2,
+            startY,
+            {
+              align: 'center',
+              baseline: 'middle',
+              maxWidth: width
+            }
+          );
         }
         
         // Рисуем изображение с правильным масштабированием
