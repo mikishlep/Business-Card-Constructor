@@ -88,7 +88,7 @@ function addElement(type = 'default') {
             content: 'Текст',
             color: '#000000',
             fontSize: 14,
-            fontFamily: 'Arial',
+            fontFamily: 'Arial MT',
             textAlign: 'center',
             bold: false,
             italic: false,

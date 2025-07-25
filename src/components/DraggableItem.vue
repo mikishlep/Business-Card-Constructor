@@ -347,12 +347,22 @@ const textStyles = computed(() => {
     return {};
   }
   
+  // Добавляем кавычки к названию шрифта и fallback шрифты
+  const fontFamily = props.text.fontFamily ? 
+    `"${props.text.fontFamily}", Arial, sans-serif` : 
+    'Arial, sans-serif';
+  
+  // Отладочная информация
+  if (props.text.fontFamily && props.text.fontFamily !== 'Arial') {
+    console.log('Применяется шрифт:', props.text.fontFamily, 'Стиль:', fontFamily);
+  }
+  
   return {
     color: props.text.color || '#000000',
     fontSize: (props.text.fontSize || 14) + 'px',
-    fontFamily: props.text.fontFamily || 'Arial',
+    fontFamily: fontFamily,
     textAlign: props.text.textAlign || 'center',
-    fontWeight: props.text.bold ? 'bold' : 'normal',
+    fontWeight: props.text.bold ? '700' : '400',
     fontStyle: props.text.italic ? 'italic' : 'normal',
     textDecoration: props.text.underline ? 'underline' : 'none'
   };

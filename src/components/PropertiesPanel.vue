@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { fonts } from '../utils/fonts.js';
 
 const props = defineProps({
   selectedElement: Object,
@@ -62,6 +63,14 @@ function setColorBackground(color) {
 function getTextContent() {
   return props.selectedElement?.text?.content || '';
 }
+
+// Получаем список шрифтов для выпадающего списка
+const fontList = computed(() => {
+  return Object.keys(fonts).map(fontName => ({
+    name: fontName,
+    displayName: fontName
+  }));
+});
 </script>
 
 <template>
@@ -281,6 +290,9 @@ function getTextContent() {
           :value="selectedElement?.text?.fontFamily || 'Arial'"
           @change="updateTextProperty('fontFamily', $event.target.value)"
         >
+          <option v-for="font in fontList" :key="font.name" :value="font.name">
+            {{ font.displayName }}
+          </option>
           <option value="Arial">Arial</option>
           <option value="Helvetica">Helvetica</option>
           <option value="Times New Roman">Times New Roman</option>

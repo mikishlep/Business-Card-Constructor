@@ -129,8 +129,27 @@ async function downloadAsPDF({ side }) {
     // Используем jsPDF для создания PDF
     const { jsPDF } = await import('jspdf');
     
-    // Импортируем Base64-строку шрифта
+    // Импортируем Base64-строки всех шрифтов
     const arialBase64 = await import('./fonts/arialmt-normal.js');
+    const arialBoldBase64 = await import('./fonts/arialmt-bold.js');
+    const montserratRegularBase64 = await import('./fonts/montserrat-regular.js');
+    const montserratBoldBase64 = await import('./fonts/montserrat-bold.js');
+    const ralewayRegularBase64 = await import('./fonts/raleway-regular.js');
+    const ralewayBoldBase64 = await import('./fonts/raleway-bold.js');
+    const caveatRegularBase64 = await import('./fonts/caveat-regular.js');
+    const caveatBoldBase64 = await import('./fonts/caveat-bold.js');
+    const rubikRegularBase64 = await import('./fonts/rubik-regular.js');
+    const rubikBoldBase64 = await import('./fonts/rubik-bold.js');
+    const exo2RegularBase64 = await import('./fonts/exo2-regular.js');
+    const exo2BoldBase64 = await import('./fonts/exo2-bold.js');
+    const latoRegularBase64 = await import('./fonts/lato-regular.js');
+    const latoBoldBase64 = await import('./fonts/lato-bold.js');
+    const oswaldRegularBase64 = await import('./fonts/oswald-regular.js');
+    const oswaldBoldBase64 = await import('./fonts/oswald-bold.js');
+    const opensansRegularBase64 = await import('./fonts/opensans-regular.js');
+    const opensansBoldBase64 = await import('./fonts/opensans-bold.js');
+    const ubuntuRegularBase64 = await import('./fonts/ubuntu-regular.js');
+    const ubuntuBoldBase64 = await import('./fonts/ubuntu-bold.js');
     
     // Размеры в мм (соответствуют размерам визитки 1063x591 пикселей при 300 DPI)
     const cardWidth = 90; // мм
@@ -142,9 +161,67 @@ async function downloadAsPDF({ side }) {
       format: [cardWidth, cardHeight]
     });
     
-    // Добавляем шрифт в PDF
+    // Добавляем все шрифты в PDF
+    // Arial
     doc.addFileToVFS('arial.ttf', arialBase64.default);
     doc.addFont('arial.ttf', 'Arial', 'normal');
+    doc.addFileToVFS('arial-bold.ttf', arialBoldBase64.default);
+    doc.addFont('arial-bold.ttf', 'Arial', 'bold');
+    
+    // Montserrat
+    doc.addFileToVFS('montserrat.ttf', montserratRegularBase64.default);
+    doc.addFont('montserrat.ttf', 'Montserrat', 'normal');
+    doc.addFileToVFS('montserrat-bold.ttf', montserratBoldBase64.default);
+    doc.addFont('montserrat-bold.ttf', 'Montserrat', 'bold');
+    
+    // Raleway
+    doc.addFileToVFS('raleway.ttf', ralewayRegularBase64.default);
+    doc.addFont('raleway.ttf', 'Raleway', 'normal');
+    doc.addFileToVFS('raleway-bold.ttf', ralewayBoldBase64.default);
+    doc.addFont('raleway-bold.ttf', 'Raleway', 'bold');
+    
+    // Caveat
+    doc.addFileToVFS('caveat.ttf', caveatRegularBase64.default);
+    doc.addFont('caveat.ttf', 'Caveat', 'normal');
+    doc.addFileToVFS('caveat-bold.ttf', caveatBoldBase64.default);
+    doc.addFont('caveat-bold.ttf', 'Caveat', 'bold');
+    
+    // Rubik
+    doc.addFileToVFS('rubik.ttf', rubikRegularBase64.default);
+    doc.addFont('rubik.ttf', 'Rubik', 'normal');
+    doc.addFileToVFS('rubik-bold.ttf', rubikBoldBase64.default);
+    doc.addFont('rubik-bold.ttf', 'Rubik', 'bold');
+    
+    // Exo 2
+    doc.addFileToVFS('exo2.ttf', exo2RegularBase64.default);
+    doc.addFont('exo2.ttf', 'Exo 2', 'normal');
+    doc.addFileToVFS('exo2-bold.ttf', exo2BoldBase64.default);
+    doc.addFont('exo2-bold.ttf', 'Exo 2', 'bold');
+    
+    // Lato
+    doc.addFileToVFS('lato.ttf', latoRegularBase64.default);
+    doc.addFont('lato.ttf', 'Lato', 'normal');
+    doc.addFileToVFS('lato-bold.ttf', latoBoldBase64.default);
+    doc.addFont('lato-bold.ttf', 'Lato', 'bold');
+    
+    // Oswald
+    doc.addFileToVFS('oswald.ttf', oswaldRegularBase64.default);
+    doc.addFont('oswald.ttf', 'Oswald', 'normal');
+    doc.addFileToVFS('oswald-bold.ttf', oswaldBoldBase64.default);
+    doc.addFont('oswald-bold.ttf', 'Oswald', 'bold');
+    
+    // Open Sans
+    doc.addFileToVFS('opensans.ttf', opensansRegularBase64.default);
+    doc.addFont('opensans.ttf', 'Open Sans', 'normal');
+    doc.addFileToVFS('opensans-bold.ttf', opensansBoldBase64.default);
+    doc.addFont('opensans-bold.ttf', 'Open Sans', 'bold');
+    
+    // Ubuntu
+    doc.addFileToVFS('ubuntu.ttf', ubuntuRegularBase64.default);
+    doc.addFont('ubuntu.ttf', 'Ubuntu', 'normal');
+    doc.addFileToVFS('ubuntu-bold.ttf', ubuntuBoldBase64.default);
+    doc.addFont('ubuntu-bold.ttf', 'Ubuntu', 'bold');
+    
     doc.setFont('Arial');
     
     // Получаем данные о визитке
@@ -296,7 +373,13 @@ async function downloadAsPDF({ side }) {
           const fontMm = fontPx * scaleFactor;
           const fontPt = fontMm * (72 / 25.4);
           doc.setFontSize(fontPt);
-          doc.setFont('Arial', 'normal');
+          
+          // Определяем шрифт и стиль
+          const fontFamily = element.text.fontFamily || 'Arial';
+          const fontWeight = element.text.bold ? 'bold' : 'normal';
+          
+          // Устанавливаем шрифт в зависимости от выбора
+          doc.setFont(fontFamily, fontWeight);
 
           const content = element.text.content || 'Текст';
           const lines = doc.splitTextToSize(content, width);
@@ -672,8 +755,83 @@ const activeBackground = computed(() => {
   return null;
 });
 
+// Функция для загрузки шрифтов из base64 для интерфейса
+async function loadFontsForInterface() {
+  try {
+    // Импортируем все base64 шрифты
+    const arialNormal = await import('./fonts/arialmt-normal.js');
+    const arialBold = await import('./fonts/arialmt-bold.js');
+    const montserratRegular = await import('./fonts/montserrat-regular.js');
+    const montserratBold = await import('./fonts/montserrat-bold.js');
+    const ralewayRegular = await import('./fonts/raleway-regular.js');
+    const ralewayBold = await import('./fonts/raleway-bold.js');
+    const caveatRegular = await import('./fonts/caveat-regular.js');
+    const caveatBold = await import('./fonts/caveat-bold.js');
+    const rubikRegular = await import('./fonts/rubik-regular.js');
+    const rubikBold = await import('./fonts/rubik-bold.js');
+    const exo2Regular = await import('./fonts/exo2-regular.js');
+    const exo2Bold = await import('./fonts/exo2-bold.js');
+    const latoRegular = await import('./fonts/lato-regular.js');
+    const latoBold = await import('./fonts/lato-bold.js');
+    const oswaldRegular = await import('./fonts/oswald-regular.js');
+    const oswaldBold = await import('./fonts/oswald-bold.js');
+    const opensansRegular = await import('./fonts/opensans-regular.js');
+    const opensansBold = await import('./fonts/opensans-bold.js');
+    const ubuntuRegular = await import('./fonts/ubuntu-regular.js');
+    const ubuntuBold = await import('./fonts/ubuntu-bold.js');
+
+    const fontData = [
+      { name: 'Arial MT', normal: arialNormal.default, bold: arialBold.default },
+      { name: 'Montserrat', normal: montserratRegular.default, bold: montserratBold.default },
+      { name: 'Raleway', normal: ralewayRegular.default, bold: ralewayBold.default },
+      { name: 'Caveat', normal: caveatRegular.default, bold: caveatBold.default },
+      { name: 'Rubik', normal: rubikRegular.default, bold: rubikBold.default },
+      { name: 'Exo 2', normal: exo2Regular.default, bold: exo2Bold.default },
+      { name: 'Lato', normal: latoRegular.default, bold: latoBold.default },
+      { name: 'Oswald', normal: oswaldRegular.default, bold: oswaldBold.default },
+      { name: 'Open Sans', normal: opensansRegular.default, bold: opensansBold.default },
+      { name: 'Ubuntu', normal: ubuntuRegular.default, bold: ubuntuBold.default }
+    ];
+
+    fontData.forEach(font => {
+      // Создаем @font-face для обычного стиля
+      const normalFontFace = `
+        @font-face {
+          font-family: '${font.name}';
+          src: url('data:font/truetype;charset=utf-8;base64,${font.normal}') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+        }
+      `;
+      
+      // Создаем @font-face для жирного стиля
+      const boldFontFace = `
+        @font-face {
+          font-family: '${font.name}';
+          src: url('data:font/truetype;charset=utf-8;base64,${font.bold}') format('truetype');
+          font-weight: bold;
+          font-style: normal;
+          font-display: swap;
+        }
+      `;
+      
+      // Добавляем стили в head
+      const style = document.createElement('style');
+      style.textContent = normalFontFace + boldFontFace;
+      document.head.appendChild(style);
+    });
+
+    console.log('Шрифты успешно загружены для интерфейса');
+  } catch (error) {
+    console.error('Ошибка при загрузке шрифтов для интерфейса:', error);
+  }
+}
+
 // Проверяем, нужно ли показать приветственное окно
 onMounted(() => {
+  // Загружаем шрифты для интерфейса
+  loadFontsForInterface();
   const hasVisited = localStorage.getItem('hasVisitedBefore');
   if (!hasVisited) {
     // Небольшая задержка для плавного появления
