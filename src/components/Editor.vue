@@ -252,8 +252,18 @@ function bringToFront() {
     const selectedElement = elements.find(el => el.isSelected);
     
     if (selectedElement) {
-        const maxZIndex = Math.max(...elements.map(el => el.zIndex || 0));
-        selectedElement.zIndex = maxZIndex + 1;
+        // Находим все элементы кроме выбранного
+        const otherElements = elements.filter(el => el.id !== selectedElement.id);
+        
+        if (otherElements.length > 0) {
+            // Находим максимальный z-index среди остальных элементов
+            const maxZIndex = Math.max(...otherElements.map(el => el.zIndex || 0));
+            // Устанавливаем z-index на 1 больше максимального
+            selectedElement.zIndex = maxZIndex + 1;
+        } else {
+            // Если это единственный элемент, устанавливаем z-index = 0
+            selectedElement.zIndex = 0;
+        }
     }
 }
 
@@ -262,8 +272,18 @@ function sendToBack() {
     const selectedElement = elements.find(el => el.isSelected);
     
     if (selectedElement) {
-        const minZIndex = Math.min(...elements.map(el => el.zIndex || 0));
-        selectedElement.zIndex = minZIndex - 1;
+        // Находим все элементы кроме выбранного
+        const otherElements = elements.filter(el => el.id !== selectedElement.id);
+        
+        if (otherElements.length > 0) {
+            // Находим минимальный z-index среди остальных элементов
+            const minZIndex = Math.min(...otherElements.map(el => el.zIndex || 0));
+            // Устанавливаем z-index на 1 меньше минимального, но не меньше 0
+            selectedElement.zIndex = Math.max(0, minZIndex - 1);
+        } else {
+            // Если это единственный элемент, устанавливаем z-index = 0
+            selectedElement.zIndex = 0;
+        }
     }
 }
 
