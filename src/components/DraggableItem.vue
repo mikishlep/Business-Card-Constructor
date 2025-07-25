@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 
 const props = defineProps({
   id: String,
@@ -28,6 +28,7 @@ const props = defineProps({
 const emit = defineEmits(['update:position', 'select']);
 
 const elementRef = ref(null);
+const textElement = ref(null);
 const isDragging = ref(false);
 const isEditing = ref(false);
 const isResizing = ref(false);
@@ -40,6 +41,17 @@ const size = ref({
   width: props.width || (props.type === 'text' ? 120 : 100), 
   height: props.height || (props.type === 'text' ? 60 : 80) 
 });
+
+// Синхронизация содержимого при изменении пропсов
+watch(() => props.text?.content, (newContent) => {
+  if (textElement.value && newContent !== undefined && !isEditing.value) {
+    nextTick(() => {
+      if (textElement.value.textContent !== newContent) {
+        textElement.value.textContent = newContent;
+      }
+    });
+  }
+}, { immediate: true });
 
 // Следим за изменениями пропсов
 watch(() => props.width, (newWidth) => {
@@ -215,11 +227,10 @@ function onDoubleClick(e) {
     e.stopPropagation();
     isEditing.value = true;
     
-    const textElement = elementRef.value.querySelector('.text-element p');
-    if (textElement) {
-      textElement.focus();
+    if (textElement.value) {
+      textElement.value.focus();
       const range = document.createRange();
-      range.selectNodeContents(textElement);
+      range.selectNodeContents(textElement.value);
       const selection = window.getSelection();
       selection.removeAllRanges();
       selection.addRange(range);
@@ -232,9 +243,8 @@ function onBlur() {
   if (props.type === 'text') {
     isEditing.value = false;
     // Также сохраняем изменения при потере фокуса
-    const textElement = elementRef.value.querySelector('.text-element p');
-    if (textElement) {
-      const newContent = textElement.textContent || textElement.innerText;
+    if (textElement.value) {
+      const newContent = textElement.value.textContent || textElement.value.innerText;
       emit('update:position', {
         id: props.id,
         property: 'text.content',
@@ -263,6 +273,23 @@ function onTextInput(e) {
       value: newContent
     });
   }
+}
+
+// Обработка начала композиции IME
+function onCompositionStart(e) {
+  // Приостанавливаем обновление во время композиции
+  isEditing.value = true;
+}
+
+// Обработка окончания композиции IME
+function onCompositionEnd(e) {
+  // Обновляем содержимое после завершения композиции
+  const newContent = e.target.textContent || e.target.innerText;
+  emit('update:position', {
+    id: props.id,
+    property: 'text.content',
+    value: newContent
+  });
 }
 
 // Вычисляем стили элемента
@@ -386,14 +413,20 @@ onUnmounted(() => {
       <template v-if="type === 'text'">
         <div class="text-element">
           <p 
+            ref="textElement"
             contenteditable="true" 
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
             @blur="onBlur"
             @input="onTextInput"
             @keydown="onKeyDown"
+            @compositionstart="onCompositionStart"
+            @compositionend="onCompositionEnd"
             :class="{ 'editing': isEditing }"
             :style="textStyles"
           >
-            {{ text?.content }}
           </p>
         </div>
       </template>
