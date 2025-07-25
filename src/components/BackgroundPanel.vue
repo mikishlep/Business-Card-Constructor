@@ -1,5 +1,9 @@
 <script setup>
 import { ref } from 'vue';
+import background1 from '../assets/backgrounds/background1.jpg';
+import background2 from '../assets/backgrounds/background2.jpg';
+import background3 from '../assets/backgrounds/background3.jpg';
+import background4 from '../assets/backgrounds/background4.jpg';
 
 const props = defineProps({
   background: Object,
@@ -15,10 +19,10 @@ const fileInput = ref(null);
 
 // Коллекция фонов
 const backgroundCollection = [
-  '/src/assets/backgrounds/background1.jpg',
-  '/src/assets/backgrounds/background2.jpg',
-  '/src/assets/backgrounds/background3.jpg',
-  '/src/assets/backgrounds/background4.jpg'
+  background1,
+  background2,
+  background3,
+  background4
 ];
 
 // Обновление типа фона
