@@ -342,7 +342,7 @@ const fontList = computed(() => {
     </div>
 
     <!-- Специальные свойства для всех элементов -->
-    <div class="section">
+    <!-- <div class="section">
       <h4>Дополнительные свойства</h4>
       <div class="property-group">
         <label>Прозрачность</label>
@@ -364,7 +364,7 @@ const fontList = computed(() => {
           @change="updateProperty('hasShadow', $event.target.checked)"
         />
       </div>
-    </div>
+    </div> -->
   </div>
   
   <!-- Кнопка разворачивания, когда панель скрыта -->
