@@ -336,6 +336,27 @@ const selectionStyles = computed(() => {
   };
 });
 
+const imageElementStyles = computed(() => {
+  // Собираем border-radius для всех углов
+  let radius = '';
+  if (
+    props.borderRadiusTopLeft ||
+    props.borderRadiusTopRight ||
+    props.borderRadiusBottomLeft ||
+    props.borderRadiusBottomRight
+  ) {
+    radius = `${props.borderRadiusTopLeft || 0}px ${props.borderRadiusTopRight || 0}px ${props.borderRadiusBottomRight || 0}px ${props.borderRadiusBottomLeft || 0}px`;
+  } else {
+    radius = (props.borderRadius || 0) + 'px';
+  }
+  return {
+    borderRadius: radius,
+    overflow: 'hidden', // обязательно!
+    width: '100%',
+    height: '100%',
+  };
+});
+
 onMounted(() => {
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
@@ -377,7 +398,10 @@ onUnmounted(() => {
         </div>
       </template>
       <template v-else-if="type === 'image'">
-        <div class="image-element">
+        <div
+          class="image-element"
+          :style="imageElementStyles"
+        >
           <img 
             :src="imageUrl || '../assets/icons/add.svg'" 
             alt="Изображение"
@@ -500,17 +524,16 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  /*align-items: center;*/
   justify-content: center;
+  align-items: center;
+  overflow: hidden; /* обязательно для обрезки углов */
 }
 
 .image-element img {
   width: 100%;
   height: 100%;
-  max-width: 100%;
-  max-height: 100%;
   object-fit: cover;
-  border-radius: inherit;
+  border-radius: inherit; /* наследует от .image-element */
 }
 
 .default-element {
